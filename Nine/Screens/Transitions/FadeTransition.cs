@@ -42,23 +42,25 @@ public class FadeTransition : TransitionBase
 
     private float _fadeRatio = 0;
 
-    private readonly Texture2D _white;
-    private readonly SpriteBatch _batch;
+    private static readonly VertexPositionColor[] _vertices = new VertexPositionColor[] {
+        new(new(-1, 1, 0), Color.Black),
+        new(new(1, 1, 0), Color.Black),
+        new(new(-1, -1, 0), Color.Black),
+        new(new(1, -1, 0), Color.Black)
+    };
+
+    private readonly BasicEffect _effect;
 
     public FadeTransition(Game game, ScreenManager screenManager, IScreen prevScreen, IScreen nextScreen)
         : base(game, screenManager, prevScreen, nextScreen)
     {
-        _white = new Texture2D(game.GraphicsDevice, 1, 1);
-        _white.SetData(new Color[] { Color.White });
-        _batch = new(game.GraphicsDevice, 1);
+        _effect = new(game.GraphicsDevice) { VertexColorEnabled = true };
     }
 
     public FadeTransition(Game game, ScreenManager screenManager, IScreen prevScreen, Task<IScreen> nextScreenLoader)
         : base(game, screenManager, prevScreen, nextScreenLoader)
     {
-        _white = new Texture2D(game.GraphicsDevice, 1, 1);
-        _white.SetData(new Color[] { Color.White });
-        _batch = new(game.GraphicsDevice, 1);
+        _effect = new(game.GraphicsDevice) { VertexColorEnabled = true };
     }
 
     public override void Update(GameTime gameTime)
@@ -96,8 +98,12 @@ public class FadeTransition : TransitionBase
         else if (_stage == Stage.FadingIn)
             NextScreen!.Draw(gameTime);
 
-        _batch.Begin();
-        _batch.Draw(_white, Game.GraphicsDevice.Viewport.Bounds, Background * _fadeRatio);
-        _batch.End();
+        _effect.Alpha = _fadeRatio;
+        _vertices[0].Color = _vertices[1].Color = _vertices[2].Color = _vertices[3].Color = Background;
+        foreach (var pass in _effect.CurrentTechnique.Passes)
+        {
+            pass.Apply();
+            Game.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, _vertices, 0, 2);
+        }
     }
 }

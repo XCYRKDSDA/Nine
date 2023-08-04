@@ -2,5 +2,5 @@
 
 public interface IAssetLoader<T>
 {
-    T Load(IAssetResolver context, string path);
+    T Load(AssetsContext context, string asset);
 }

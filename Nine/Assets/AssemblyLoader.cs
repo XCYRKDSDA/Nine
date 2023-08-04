@@ -12,9 +12,9 @@ public class AssemblyLoader : IAssetLoader<Assembly>
         Domain = domain;
     }
 
-    public Assembly Load(IAssetResolver context, string path)
+    public Assembly Load(AssetsContext context, string asset)
     {
-        using var fileStream = context.Open(path);
+        using var fileStream = context.Open(asset);
 
         return Domain.LoadFromStream(fileStream);
     }

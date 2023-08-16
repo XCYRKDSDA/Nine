@@ -1,4 +1,6 @@
-﻿namespace Nine.Animations;
+﻿using System.Numerics;
+
+namespace Nine.Animations;
 
 public static class TrackEvaluator<ObjectT>
 {
@@ -9,18 +11,26 @@ public static class TrackEvaluator<ObjectT>
     }
 
     public static void TweenAndSet<ValueT>(ref ObjectT obj, IProperty<ObjectT, ValueT> property,
-                                           ICurve<ValueT>? curve1, float t1, ICurve<ValueT>? curve2, float t2,
-                                           ITweener<ValueT> tweener, float k)
+                                           ICurve<ValueT>? curve1, float t1, ICurve<ValueT>? curve2, float t2, ICurve<float>? tweener, float k)
+        where ValueT : IAdditionOperators<ValueT, ValueT, ValueT>, IMultiplyOperators<ValueT, float, ValueT> // 要求值的类型支持加法和数乘
     {
+        // 获取两条曲线各自的输出
         var value1 = curve1 == null ? property.Get(in obj) : curve1.Evaluate(t1);
         var value2 = curve2 == null ? property.Get(in obj) : curve2.Evaluate(t2);
-        property.Set(ref obj, tweener.Tween(in value1, in value2, k));
+
+        // 如果没有给定插值器, 则按照线性插值. 否则使用给定的插值器进行映射
+        if (tweener != null)
+            k = tweener.Evaluate(k);
+
+        // 混合两条曲线的输出, 并赋值
+        property.Set(ref obj, value1 * (1 - k) + value2 * k);
     }
 
     #region Reflection Cache
 
     private delegate void EvaluateAndSetMethod(ref ObjectT obj, IProperty<ObjectT> property, ICurve? curve, float t);
-    private delegate void TweenAndSetMethod(ref ObjectT obj, IProperty<ObjectT> property, ICurve? curve1, float t1, ICurve? curve2, float t2, ITweener tweener, float k);
+    private delegate void TweenAndSetMethod(ref ObjectT obj, IProperty<ObjectT> property,
+                                            ICurve? curve1, float t1, ICurve? curve2, float t2, ICurve<float>? tweener, float k);
 
     private static readonly Dictionary<Type, (EvaluateAndSetMethod, TweenAndSetMethod)> _cachedMethods = new();
 
@@ -53,8 +63,7 @@ public static class TrackEvaluator<ObjectT>
     }
 
     public static void TweenAndSet(ref ObjectT obj, IProperty<ObjectT> property, Type valueType,
-                                   ICurve? curve1, float t1, ICurve? curve2, float t2,
-                                   ITweener tweener, float k)
+                                   ICurve? curve1, float t1, ICurve? curve2, float t2, ICurve<float> tweener, float k)
     {
         var (_, method) = GetEvaluationMethodsFromCache(valueType);
         method.Invoke(ref obj, property, curve1, t1, curve2, t2, tweener, k);
@@ -68,7 +77,7 @@ public static class TrackEvaluator<ObjectT>
 
     public static void TweenAndSet(ref ObjectT obj,
                                    TrackCollection<ObjectT> tracks1, float t1, TrackCollection<ObjectT> tracks2, float t2,
-                                   ITweener tweener, float k)
+                                   ICurve<float> tweener, float k)
     {
         // 遍历两个轨道集合关注的属性的交集
         var unionedKeys = Enumerable.Union(tracks1.Keys, tracks2.Keys);

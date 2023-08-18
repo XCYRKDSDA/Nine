@@ -63,7 +63,7 @@ public static class TrackEvaluator<ObjectT>
     }
 
     public static void TweenAndSet(ref ObjectT obj, IProperty<ObjectT> property, Type valueType,
-                                   ICurve? curve1, float t1, ICurve? curve2, float t2, ICurve<float> tweener, float k)
+                                   ICurve? curve1, float t1, ICurve? curve2, float t2, ICurve<float>? tweener, float k)
     {
         var (_, method) = GetEvaluationMethodsFromCache(valueType);
         method.Invoke(ref obj, property, curve1, t1, curve2, t2, tweener, k);
@@ -77,7 +77,7 @@ public static class TrackEvaluator<ObjectT>
 
     public static void TweenAndSet(ref ObjectT obj,
                                    TrackCollection<ObjectT> tracks1, float t1, TrackCollection<ObjectT> tracks2, float t2,
-                                   ICurve<float> tweener, float k)
+                                   ICurve<float>? tweener, float k)
     {
         // 遍历两个轨道集合关注的属性的交集
         var unionedKeys = Enumerable.Union(tracks1.Keys, tracks2.Keys);

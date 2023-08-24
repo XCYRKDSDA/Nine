@@ -2,37 +2,10 @@
 
 namespace Nine.Animations;
 
+using static GenericMathHelper;
+
 public static class TrackEvaluator
 {
-    #region Operators Cache
-
-    private delegate ValueT AdditionOperator<ValueT>(in ValueT a, in ValueT b);
-    private delegate ValueT MultiplicationOperator<ValueT>(in ValueT v, in float k);
-
-    private static readonly Dictionary<Type, (Delegate, Delegate)> _cachedOperators = new();
-
-    private static (Delegate, Delegate) GetOperatorsFromCache(Type valueType)
-    {
-        // 不重复记录
-        if (_cachedOperators.TryGetValue(valueType, out var operators))
-            return operators;
-
-        // 查询方法并生成委托
-        var additionOperatorInfo = valueType.GetMethod("op_Addition", BindingFlags.Static, new Type[] { valueType, valueType })!;
-        var additionOperator = additionOperatorInfo.CreateDelegate(typeof(AdditionOperator<>).MakeGenericType(valueType))!;
-        var multiplyOperatorInfo = valueType.GetMethod("op_Multiply", BindingFlags.Static, new Type[] { valueType, typeof(float) })!;
-        var multiplyOperator = multiplyOperatorInfo.CreateDelegate(typeof(MultiplicationOperator<>).MakeGenericType(valueType))!;
-
-        // 缓存委托
-        _cachedOperators[valueType] = (additionOperator, multiplyOperator);
-
-        return (additionOperator, multiplyOperator);
-    }
-
-    public static void CacheOperators(Type valueType) => _ = GetOperatorsFromCache(valueType);
-
-    #endregion
-
     public static void EvaluateAndSet<ObjectT, ValueT>(ref ObjectT obj, IProperty<ObjectT, ValueT> property, ICurve<ValueT>? curve, float t)
     {
         var value = curve == null ? property.Get(in obj) : curve.Evaluate(t);
@@ -52,10 +25,7 @@ public static class TrackEvaluator
             k = tweener.Evaluate(k);
 
         // 混合两条曲线的输出, 并赋值
-        var (additionOperatorTmp, multiplyOperatorTmp) = GetOperatorsFromCache(typeof(ValueT));
-        var additionOperator = (AdditionOperator<ValueT>)additionOperatorTmp;
-        var multiplyOperator = (MultiplicationOperator<ValueT>)multiplyOperatorTmp;
-        var result = additionOperator.Invoke(multiplyOperator.Invoke(in value1, 1 - k), multiplyOperator.Invoke(in value2, k));
+        var result = Add(Mul(in value1, 1 - k), Mul(in value2, k)); ;
         property.Set(ref obj, in result);
     }
 

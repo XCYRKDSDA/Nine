@@ -13,7 +13,7 @@ public static class AnimationEvaluator<ObjectT>
     public static void EvaluateAndSet(ref ObjectT obj, AnimationClip<ObjectT> clip, float t)
     {
         t = WrapTime(t, clip);
-        TrackEvaluator<ObjectT>.EvaluateAndSet(ref obj, clip.Tracks, t);
+        TrackEvaluator.EvaluateAndSet(ref obj, clip.Tracks, t);
     }
 
     public static void TweenAndSet(ref ObjectT obj,
@@ -22,6 +22,6 @@ public static class AnimationEvaluator<ObjectT>
     {
         t1 = WrapTime(t1, clip1);
         t2 = WrapTime(t2, clip2);
-        TrackEvaluator<ObjectT>.TweenAndSet(ref obj, clip1.Tracks, t1, clip2.Tracks, t2, tweener, k);
+        TrackEvaluator.TweenAndSet(ref obj, clip1.Tracks, t1, clip2.Tracks, t2, tweener, k);
     }
 }

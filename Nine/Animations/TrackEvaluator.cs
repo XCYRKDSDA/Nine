@@ -1,18 +1,47 @@
-﻿using System.Numerics;
+﻿using System.Reflection;
 
 namespace Nine.Animations;
 
-public static class TrackEvaluator<ObjectT>
+public static class TrackEvaluator
 {
-    public static void EvaluateAndSet<ValueT>(ref ObjectT obj, IProperty<ObjectT, ValueT> property, ICurve<ValueT>? curve, float t)
+    #region Operators Cache
+
+    private delegate ValueT AdditionOperator<ValueT>(in ValueT a, in ValueT b);
+    private delegate ValueT MultiplicationOperator<ValueT>(in ValueT v, in float k);
+
+    private static readonly Dictionary<Type, (Delegate, Delegate)> _cachedOperators = new();
+
+    private static (Delegate, Delegate) GetOperatorsFromCache(Type valueType)
+    {
+        // 不重复记录
+        if (_cachedOperators.TryGetValue(valueType, out var operators))
+            return operators;
+
+        // 查询方法并生成委托
+        var additionOperatorInfo = valueType.GetMethod("op_Addition", BindingFlags.Static, new Type[] { valueType, valueType })!;
+        var additionOperator = additionOperatorInfo.CreateDelegate(typeof(AdditionOperator<>).MakeGenericType(valueType))!;
+        var multiplyOperatorInfo = valueType.GetMethod("op_Multiply", BindingFlags.Static, new Type[] { valueType, typeof(float) })!;
+        var multiplyOperator = multiplyOperatorInfo.CreateDelegate(typeof(MultiplicationOperator<>).MakeGenericType(valueType))!;
+
+        // 缓存委托
+        _cachedOperators[valueType] = (additionOperator, multiplyOperator);
+
+        return (additionOperator, multiplyOperator);
+    }
+
+    public static void CacheOperators(Type valueType) => _ = GetOperatorsFromCache(valueType);
+
+    #endregion
+
+    public static void EvaluateAndSet<ObjectT, ValueT>(ref ObjectT obj, IProperty<ObjectT, ValueT> property, ICurve<ValueT>? curve, float t)
     {
         var value = curve == null ? property.Get(in obj) : curve.Evaluate(t);
         property.Set(ref obj, value);
     }
 
-    public static void TweenAndSet<ValueT>(ref ObjectT obj, IProperty<ObjectT, ValueT> property,
-                                           ICurve<ValueT>? curve1, float t1, ICurve<ValueT>? curve2, float t2, ICurve<float>? tweener, float k)
-        where ValueT : IAdditionOperators<ValueT, ValueT, ValueT>, IMultiplyOperators<ValueT, float, ValueT> // 要求值的类型支持加法和数乘
+    public static void TweenAndSet<ObjectT, ValueT>(ref ObjectT obj, IProperty<ObjectT, ValueT> property,
+                                                    ICurve<ValueT>? curve1, float t1, ICurve<ValueT>? curve2, float t2,
+                                                    ICurve<float>? tweener, float k)
     {
         // 获取两条曲线各自的输出
         var value1 = curve1 == null ? property.Get(in obj) : curve1.Evaluate(t1);
@@ -23,61 +52,75 @@ public static class TrackEvaluator<ObjectT>
             k = tweener.Evaluate(k);
 
         // 混合两条曲线的输出, 并赋值
-        property.Set(ref obj, value1 * (1 - k) + value2 * k);
+        var (additionOperatorTmp, multiplyOperatorTmp) = GetOperatorsFromCache(typeof(ValueT));
+        var additionOperator = (AdditionOperator<ValueT>)additionOperatorTmp;
+        var multiplyOperator = (MultiplicationOperator<ValueT>)multiplyOperatorTmp;
+        var result = additionOperator.Invoke(multiplyOperator.Invoke(in value1, 1 - k), multiplyOperator.Invoke(in value2, k));
+        property.Set(ref obj, in result);
     }
 
-    #region Reflection Cache
+    #region Evaluation Methods Cache
 
-    private delegate void EvaluateAndSetMethod(ref ObjectT obj, IProperty<ObjectT> property, ICurve? curve, float t);
-    private delegate void TweenAndSetMethod(ref ObjectT obj, IProperty<ObjectT> property,
-                                            ICurve? curve1, float t1, ICurve? curve2, float t2, ICurve<float>? tweener, float k);
+    private delegate void EvaluateAndSetMethod<ObjectT>(ref ObjectT obj, IProperty<ObjectT> property, ICurve? curve, float t);
+    private delegate void TweenAndSetMethod<ObjectT>(ref ObjectT obj, IProperty<ObjectT> property,
+                                                     ICurve? curve1, float t1, ICurve? curve2, float t2, ICurve<float>? tweener, float k);
 
-    private static readonly Dictionary<Type, (EvaluateAndSetMethod, TweenAndSetMethod)> _cachedMethods = new();
+    private static readonly Dictionary<(Type, Type), (Delegate, Delegate)> _cachedMethods = new();
 
-    private static (EvaluateAndSetMethod, TweenAndSetMethod) GetEvaluationMethodsFromCache(Type valueType)
+    private static void EvaluateAndSet_Wrapper<ObjectT, ValueT>(ref ObjectT obj, IProperty<ObjectT> property, ICurve? curve, float t)
+        => EvaluateAndSet(ref obj, (IProperty<ObjectT, ValueT>)property, (ICurve<ValueT>?)curve, t);
+
+    private static void TweenAndSet_Wrapper<ObjectT, ValueT>(ref ObjectT obj, IProperty<ObjectT> property,
+                                                             ICurve? curve1, float t1, ICurve? curve2, float t2, ICurve<float>? tweener, float k)
+        => TweenAndSet(ref obj, (IProperty<ObjectT, ValueT>)property, (ICurve<ValueT>?)curve1, t1, (ICurve<ValueT>?)curve2, t2, tweener, k);
+
+    private static readonly MethodInfo EvaluateAndSet_Wrapper_Info = typeof(TrackEvaluator).GetMethod("EvaluateAndSet_Wrapper", BindingFlags.NonPublic | BindingFlags.Static)!;
+    private static readonly MethodInfo TweenAndSet_Wrapper_Info = typeof(TrackEvaluator).GetMethod("TweenAndSet_Wrapper", BindingFlags.NonPublic | BindingFlags.Static)!;
+
+    private static (Delegate, Delegate) GetEvaluationMethodsFromCache(Type objectType, Type valueType)
     {
         // 不重复记录
-        if (_cachedMethods.TryGetValue(valueType, out var methods))
+        if (_cachedMethods.TryGetValue((objectType, valueType), out var methods))
             return methods;
 
         // 获得方法并生成委托
-        var evaluateAndSetHandlerInfo = typeof(TrackEvaluator<ObjectT>).GetMethod("EvaluateAndSet")!;
-        var evaluateAndSetHandler = (EvaluateAndSetMethod)Delegate.CreateDelegate(typeof(EvaluateAndSetMethod), evaluateAndSetHandlerInfo);
-        var evaluateAndTweenAndSetHandlerInfo = typeof(TrackEvaluator<ObjectT>).GetMethod("EvaluateAndTweenAndSet")!;
-        var evaluateAndTweenAndSetHandler = (TweenAndSetMethod)Delegate.CreateDelegate(typeof(EvaluateAndSetMethod), evaluateAndTweenAndSetHandlerInfo);
+        var evaluateAndSetHandlerInfo = EvaluateAndSet_Wrapper_Info.MakeGenericMethod(objectType, valueType)!;
+        var evaluateAndSetHandler = Delegate.CreateDelegate(typeof(EvaluateAndSetMethod<>).MakeGenericType(objectType), evaluateAndSetHandlerInfo);
+        var tweenAndSetHandlerInfo = TweenAndSet_Wrapper_Info.MakeGenericMethod(objectType, valueType)!;
+        var tweenAndSetHandler = Delegate.CreateDelegate(typeof(TweenAndSetMethod<>).MakeGenericType(objectType), tweenAndSetHandlerInfo);
 
         // 缓存委托
-        _cachedMethods.Add(valueType, (evaluateAndSetHandler, evaluateAndTweenAndSetHandler));
+        _cachedMethods.Add((objectType, valueType), (evaluateAndSetHandler, tweenAndSetHandler));
 
-        return (evaluateAndSetHandler, evaluateAndTweenAndSetHandler);
+        return (evaluateAndSetHandler, tweenAndSetHandler);
     }
 
-    public static void CacheEvaluationMethods(Type valueType) => _ = GetEvaluationMethodsFromCache(valueType);
+    public static void CacheEvaluationMethods(Type objectType, Type valueType) => _ = GetEvaluationMethodsFromCache(objectType, valueType);
 
     #endregion
 
-    public static void EvaluateAndSet(ref ObjectT obj, IProperty<ObjectT> property, Type valueType, ICurve? curve, float t)
+    public static void EvaluateAndSet<ObjectT>(ref ObjectT obj, IProperty<ObjectT> property, Type valueType, ICurve? curve, float t)
     {
-        var (method, _) = GetEvaluationMethodsFromCache(valueType);
-        method.Invoke(ref obj, property, curve, t);
+        var (method, _) = GetEvaluationMethodsFromCache(typeof(ObjectT), valueType);
+        ((EvaluateAndSetMethod<ObjectT>)method).Invoke(ref obj, property, curve, t);
     }
 
-    public static void TweenAndSet(ref ObjectT obj, IProperty<ObjectT> property, Type valueType,
-                                   ICurve? curve1, float t1, ICurve? curve2, float t2, ICurve<float>? tweener, float k)
+    public static void TweenAndSet<ObjectT>(ref ObjectT obj, IProperty<ObjectT> property, Type valueType,
+                                            ICurve? curve1, float t1, ICurve? curve2, float t2, ICurve<float>? tweener, float k)
     {
-        var (_, method) = GetEvaluationMethodsFromCache(valueType);
-        method.Invoke(ref obj, property, curve1, t1, curve2, t2, tweener, k);
+        var (_, method) = GetEvaluationMethodsFromCache(typeof(ObjectT), valueType);
+        ((TweenAndSetMethod<ObjectT>)method).Invoke(ref obj, property, curve1, t1, curve2, t2, tweener, k);
     }
 
-    public static void EvaluateAndSet(ref ObjectT obj, TrackCollection<ObjectT> tracks, float t)
+    public static void EvaluateAndSet<ObjectT>(ref ObjectT obj, TrackCollection<ObjectT> tracks, float t)
     {
-        foreach (var (property, valueType, curve) in tracks)
+        foreach (var ((property, valueType), curve) in tracks)
             EvaluateAndSet(ref obj, property, valueType, curve, t);
     }
 
-    public static void TweenAndSet(ref ObjectT obj,
-                                   TrackCollection<ObjectT> tracks1, float t1, TrackCollection<ObjectT> tracks2, float t2,
-                                   ICurve<float>? tweener, float k)
+    public static void TweenAndSet<ObjectT>(ref ObjectT obj,
+                                            TrackCollection<ObjectT> tracks1, float t1, TrackCollection<ObjectT> tracks2, float t2,
+                                            ICurve<float>? tweener, float k)
     {
         // 遍历两个轨道集合关注的属性的交集
         var unionedKeys = Enumerable.Union(tracks1.Keys, tracks2.Keys);

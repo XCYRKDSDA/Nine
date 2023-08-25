@@ -69,7 +69,7 @@ public static class GenericMathHelper
     private static object CompileZero(Type valueType, Delegate subtraction)
     {
         if (valueType.IsPrimitive)
-            return 0;
+            return Convert.ChangeType(0, valueType)!;
 
         if (valueType.GetField("Zero", BindingFlags.Static) is FieldInfo zeroField)
             return zeroField.GetValue(null)!;

@@ -7,11 +7,6 @@ using CacheTuple = ValueTuple<Delegate, Delegate, Delegate, Delegate, object>;
 
 public static class GenericMathHelper
 {
-    private delegate ValueT AdditionOperator<ValueT>(ValueT a, ValueT b);
-    private delegate ValueT SubtractionOperator<ValueT>(ValueT a, ValueT b);
-    private delegate ValueT MultiplicationOperator<ValueT>(ValueT v, float k);
-    private delegate ValueT DivisionOperator<ValueT>(ValueT v, float k);
-
     private static readonly Dictionary<Type, CacheTuple> _cachedOperators = new();
 
     /// <summary>
@@ -81,7 +76,7 @@ public static class GenericMathHelper
         return subtraction.DynamicInvoke(val, val)!;
     }
 
-    private static CacheTuple GetOperatorsFromCache(Type valueType)
+    internal static CacheTuple GetOperatorsFromCache(Type valueType)
     {
         // 不重复记录
         if (_cachedOperators.TryGetValue(valueType, out var operators))
@@ -101,33 +96,42 @@ public static class GenericMathHelper
         return operators;
     }
 
+    internal static (Func<ValueT, ValueT, ValueT>, Func<ValueT, ValueT, ValueT>, Func<ValueT, float, ValueT>, Func<ValueT, float, ValueT>, ValueT)
+        GetOperatorsFromCache<ValueT>()
+    {
+        var (add, sub, mul, div, zero) = GetOperatorsFromCache(typeof(ValueT));
+        return ((Func<ValueT, ValueT, ValueT>)add, (Func<ValueT, ValueT, ValueT>)sub,
+                (Func<ValueT, float, ValueT>)mul, (Func<ValueT, float, ValueT>)div,
+                (ValueT)zero);
+    }
+
     public static void CacheOperators(Type valueType) => _ = GetOperatorsFromCache(valueType);
 
-    public static ValueT Add<ValueT>(in ValueT a, in ValueT b)
+    internal static ValueT Add<ValueT>(in ValueT a, in ValueT b)
     {
         var (addition, _, _, _, _) = GetOperatorsFromCache(typeof(ValueT));
-        return ((AdditionOperator<ValueT>)addition).Invoke(a, b);
+        return ((Func<ValueT, ValueT, ValueT>)addition).Invoke(a, b);
     }
 
-    public static ValueT Sub<ValueT>(in ValueT a, in ValueT b)
+    internal static ValueT Sub<ValueT>(in ValueT a, in ValueT b)
     {
         var (_, subtraction, _, _, _) = GetOperatorsFromCache(typeof(ValueT));
-        return ((SubtractionOperator<ValueT>)subtraction).Invoke(a, b);
+        return ((Func<ValueT, ValueT, ValueT>)subtraction).Invoke(a, b);
     }
 
-    public static ValueT Mul<ValueT>(in ValueT a, float k)
+    internal static ValueT Mul<ValueT>(in ValueT a, float k)
     {
         var (_, _, multiplication, _, _) = GetOperatorsFromCache(typeof(ValueT));
-        return ((MultiplicationOperator<ValueT>)multiplication).Invoke(a, k);
+        return ((Func<ValueT, float, ValueT>)multiplication).Invoke(a, k);
     }
 
-    public static ValueT Div<ValueT>(in ValueT a, float k)
+    internal static ValueT Div<ValueT>(in ValueT a, float k)
     {
         var (_, _, _, division, _) = GetOperatorsFromCache(typeof(ValueT));
-        return ((DivisionOperator<ValueT>)division).Invoke(a, k);
+        return ((Func<ValueT, float, ValueT>)division).Invoke(a, k);
     }
 
-    public static ValueT Zero<ValueT>()
+    internal static ValueT Zero<ValueT>()
     {
         var (_, _, _, _, zero) = GetOperatorsFromCache(typeof(ValueT));
         return (ValueT)zero;

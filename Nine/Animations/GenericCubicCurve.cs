@@ -1,10 +1,19 @@
 ﻿namespace Nine.Animations;
 
-using static GenericMathHelper;
-
 public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatable<ValueT>
 {
     private readonly CubicCurveKeyCollection<ValueT> _keys = new();
+
+    private readonly static Func<ValueT, ValueT, ValueT> _add;
+    private readonly static Func<ValueT, ValueT, ValueT> _sub;
+    private readonly static Func<ValueT, float, ValueT> _mul;
+    private readonly static Func<ValueT, float, ValueT> _div;
+    private readonly static ValueT _zero;
+
+    static CubicCurve()
+    {
+        (_add, _sub, _mul, _div, _zero) = GenericMathHelper.GetOperatorsFromCache<ValueT>();
+    }
 
     public CubicCurveKeyCollection<ValueT> Keys => _keys;
 
@@ -35,7 +44,7 @@ public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatab
     private ValueT GetGradient(int idx)
     {
         if (idx <= 0 || idx >= _keys.Count - 1)
-            return Zero<ValueT>();
+            return _zero;
 
         var key = _keys[idx];
 
@@ -45,7 +54,7 @@ public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatab
         var prevKey = _keys[idx - 1];
         var nextKey = _keys[idx + 1];
 
-        return Div(Sub(in nextKey.Value, in prevKey.Value), nextKey.Position - prevKey.Position);
+        return _div(_sub(nextKey.Value, prevKey.Value), nextKey.Position - prevKey.Position);
     }
 
     public ValueT Evaluate(float position)
@@ -72,8 +81,8 @@ public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatab
 
         // 标准化
         var u = rightKey.Position - leftKey.Position;
-        m0 = Div(in m0, u);
-        m1 = Div(in m1, u);
+        m0 = _div(m0, u);
+        m1 = _div(m1, u);
         var t = (position - leftKey.Position) / u;
 
         // 计算结果
@@ -83,6 +92,6 @@ public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatab
         var h10 = t3 - 2 * t2 + t;
         var h01 = -2 * t3 + 3 * t2;
         var h11 = t3 - t2;
-        return Add(Add(Mul(in p0, h00), Mul(in m0, h10)), Add(Mul(in p1, h01), Mul(in m1, h11)));
+        return _add(_add(_mul(p0, h00), _mul(m0, h10)), _add(_mul(p1, h01), _mul(m1, h11)));
     }
 }

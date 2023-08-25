@@ -1,8 +1,6 @@
-﻿using ValueT = System.Single;
+﻿namespace Nine.Animations;
 
-namespace Nine.Animations;
-
-public class CubicCurve : ICurve<ValueT>
+public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatable<ValueT>
 {
     private readonly CubicCurveKeyCollection<ValueT> _keys = new();
 
@@ -35,7 +33,7 @@ public class CubicCurve : ICurve<ValueT>
     private ValueT GetGradient(int idx)
     {
         if (idx <= 0 || idx >= _keys.Count - 1)
-            return 0;
+            return GenericMathHelper<ValueT>.Zero;
 
         var key = _keys[idx];
 
@@ -45,7 +43,7 @@ public class CubicCurve : ICurve<ValueT>
         var prevKey = _keys[idx - 1];
         var nextKey = _keys[idx + 1];
 
-        return (nextKey.Value - prevKey.Value) / (nextKey.Position - prevKey.Position);
+        return GenericMathHelper<ValueT>.Div(GenericMathHelper<ValueT>.Sub(in nextKey.Value, in prevKey.Value), nextKey.Position - prevKey.Position);
     }
 
     public ValueT Evaluate(float position)
@@ -72,8 +70,8 @@ public class CubicCurve : ICurve<ValueT>
 
         // 标准化
         var u = rightKey.Position - leftKey.Position;
-        m0 /= u;
-        m1 /= u;
+        m0 = GenericMathHelper<ValueT>.Div(in m0, u);
+        m1 = GenericMathHelper<ValueT>.Div(in m1, u);
         var t = (position - leftKey.Position) / u;
 
         // 计算结果
@@ -83,6 +81,9 @@ public class CubicCurve : ICurve<ValueT>
         var h10 = t3 - 2 * t2 + t;
         var h01 = -2 * t3 + 3 * t2;
         var h11 = t3 - t2;
-        return h00 * p0 + h10 * m0 + h01 * p1 + h11 * m1;
+        return GenericMathHelper<ValueT>.Add(
+            GenericMathHelper<ValueT>.Add(GenericMathHelper<ValueT>.Mul(in p0, h00), GenericMathHelper<ValueT>.Mul(in m0, h10)),
+            GenericMathHelper<ValueT>.Add(GenericMathHelper<ValueT>.Mul(in p1, h01), GenericMathHelper<ValueT>.Mul(in m1, h11))
+        );
     }
 }

@@ -15,12 +15,12 @@ public class TextureRegion
 
     public int Height => VirtualFrame.Height;
 
-    public Rectangle Bounds => new(Point.Zero, VirtualFrame.Size);
+    public Rectangle Bounds => new(0, 0, VirtualFrame.Width, VirtualFrame.Height);
 
     public TextureRegion(Texture2D texture, Rectangle? sourceRegion = null, Rectangle? virtualFrame = null)
     {
         SourceTexture = texture;
         SourceRegion = sourceRegion ?? texture.Bounds;
-        VirtualFrame = virtualFrame ?? new(Point.Zero, SourceRegion.Size);
+        VirtualFrame = virtualFrame ?? new(0, 0, SourceRegion.Width, SourceRegion.Height);
     }
 }

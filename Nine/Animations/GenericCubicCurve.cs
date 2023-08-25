@@ -4,17 +4,6 @@ public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatab
 {
     private readonly CubicCurveKeyCollection<ValueT> _keys = new();
 
-    private readonly static Func<ValueT, ValueT, ValueT> _add;
-    private readonly static Func<ValueT, ValueT, ValueT> _sub;
-    private readonly static Func<ValueT, float, ValueT> _mul;
-    private readonly static Func<ValueT, float, ValueT> _div;
-    private readonly static ValueT _zero;
-
-    static CubicCurve()
-    {
-        (_add, _sub, _mul, _div, _zero) = GenericMathHelper.GetOperatorsFromCache<ValueT>();
-    }
-
     public CubicCurveKeyCollection<ValueT> Keys => _keys;
 
     private (int, int) FindKeysIndices(float position)
@@ -44,7 +33,7 @@ public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatab
     private ValueT GetGradient(int idx)
     {
         if (idx <= 0 || idx >= _keys.Count - 1)
-            return _zero;
+            return GenericMathHelper<ValueT>.Zero;
 
         var key = _keys[idx];
 
@@ -54,7 +43,7 @@ public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatab
         var prevKey = _keys[idx - 1];
         var nextKey = _keys[idx + 1];
 
-        return _div(_sub(nextKey.Value, prevKey.Value), nextKey.Position - prevKey.Position);
+        return GenericMathHelper<ValueT>.Div(GenericMathHelper<ValueT>.Sub(in nextKey.Value, in prevKey.Value), nextKey.Position - prevKey.Position);
     }
 
     public ValueT Evaluate(float position)
@@ -81,8 +70,8 @@ public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatab
 
         // 标准化
         var u = rightKey.Position - leftKey.Position;
-        m0 = _div(m0, u);
-        m1 = _div(m1, u);
+        m0 = GenericMathHelper<ValueT>.Div(in m0, u);
+        m1 = GenericMathHelper<ValueT>.Div(in m1, u);
         var t = (position - leftKey.Position) / u;
 
         // 计算结果
@@ -92,6 +81,9 @@ public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatab
         var h10 = t3 - 2 * t2 + t;
         var h01 = -2 * t3 + 3 * t2;
         var h11 = t3 - t2;
-        return _add(_add(_mul(p0, h00), _mul(m0, h10)), _add(_mul(p1, h01), _mul(m1, h11)));
+        return GenericMathHelper<ValueT>.Add(
+            GenericMathHelper<ValueT>.Add(GenericMathHelper<ValueT>.Mul(in p0, h00), GenericMathHelper<ValueT>.Mul(in m0, h10)),
+            GenericMathHelper<ValueT>.Add(GenericMathHelper<ValueT>.Mul(in p1, h01), GenericMathHelper<ValueT>.Mul(in m1, h11))
+        );
     }
 }

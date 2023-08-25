@@ -2,8 +2,6 @@
 
 namespace Nine.Animations;
 
-using static GenericMathHelper;
-
 public static class TrackEvaluator
 {
     public static void EvaluateAndSet<ObjectT, ValueT>(ref ObjectT obj, IProperty<ObjectT, ValueT> property, ICurve<ValueT>? curve, float t)
@@ -25,7 +23,7 @@ public static class TrackEvaluator
             k = tweener.Evaluate(k);
 
         // 混合两条曲线的输出, 并赋值
-        var result = Add(Mul(in value1, 1 - k), Mul(in value2, k)); ;
+        var result = GenericMathHelper<ValueT>.Add(GenericMathHelper<ValueT>.Mul(in value1, 1 - k), GenericMathHelper<ValueT>.Mul(in value2, k));
         property.Set(ref obj, in result);
     }
 

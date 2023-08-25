@@ -63,8 +63,6 @@ public static class TrackEvaluator
         return (evaluateAndSetHandler, tweenAndSetHandler);
     }
 
-    public static void CacheEvaluationMethods(Type objectType, Type valueType) => _ = GetEvaluationMethodsFromCache(objectType, valueType);
-
     #endregion
 
     public static void EvaluateAndSet<ObjectT>(ref ObjectT obj, IProperty<ObjectT> property, Type valueType, ICurve? curve, float t)

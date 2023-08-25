@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace Nine.Animations;
 
-public static class GenericMathHelper<ValueT>
+internal static class GenericMathHelper<ValueT>
 {
     private delegate ValueT Addition(ValueT a, ValueT b);
     private delegate ValueT Subtraction(ValueT a, ValueT b);

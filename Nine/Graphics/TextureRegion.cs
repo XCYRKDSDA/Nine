@@ -5,22 +5,13 @@ namespace Nine.Graphics;
 
 public class TextureRegion
 {
-    public Texture SourceTexture { get; }
+    public Texture2D Texture { get; }
 
-    public Rectangle SourceRegion { get; }
+    public Rectangle Bounds { get; }
 
-    public Rectangle VirtualFrame { get; }
-
-    public int Width => VirtualFrame.Width;
-
-    public int Height => VirtualFrame.Height;
-
-    public Rectangle Bounds => new(0, 0, VirtualFrame.Width, VirtualFrame.Height);
-
-    public TextureRegion(Texture2D texture, Rectangle? sourceRegion = null, Rectangle? virtualFrame = null)
+    public TextureRegion(Texture2D texture, Rectangle? region = null)
     {
-        SourceTexture = texture;
-        SourceRegion = sourceRegion ?? texture.Bounds;
-        VirtualFrame = virtualFrame ?? new(0, 0, SourceRegion.Width, SourceRegion.Height);
+        Texture = texture;
+        Bounds = region ?? texture.Bounds;
     }
 }

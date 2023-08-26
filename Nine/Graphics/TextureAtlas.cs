@@ -37,8 +37,8 @@ public class TextureAtlas : IReadOnlyDictionary<string, TextureRegion>
         _texture = texture;
     }
 
-    public void Add(string key, Rectangle sourceRegion, Rectangle? virtualFrame = null)
+    public void Add(string key, Rectangle region)
     {
-        _regions[key] = new(_texture, sourceRegion, virtualFrame);
+        _regions[key] = new(_texture, region);
     }
 }

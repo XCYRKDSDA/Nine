@@ -16,7 +16,7 @@ public class ResourceAssetResolver : IAssetResolver
         assets_ = new(assembly.GetManifestResourceNames());
     }
 
-    private string ConvertToAssemblyPath(string path) => $"{Assembly.GetName().Name}.{Namesapce}.{path.Replace('/', '.').Replace('\\', '.')}";
+    private string ConvertToAssemblyPath(string path) => $"{Assembly.GetName().Name}.{Namesapce}.{path.Replace('/', '.').Replace('\\', '.')}".Replace("..", ".");
 
     public bool Exists(string path)
     {

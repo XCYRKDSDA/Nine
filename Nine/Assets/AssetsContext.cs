@@ -31,7 +31,7 @@ public class AssetsContext : IAssetResolver, IAssetsManager
     public T Load<T>(string path, bool cache = true) => _assetsManager.Load<T>(Path.Combine(_directory, path), cache);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Unload(string path) => _assetsManager.Unload(Path.Combine(_directory, path));
+    public void Unload<T>(string path) => _assetsManager.Unload<T>(Path.Combine(_directory, path));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ClearCache() => _assetsManager.ClearCache();

@@ -4,7 +4,7 @@ public class AssetsManager : IAssetsManager
 {
     private readonly IAssetResolver _assetResolver;
     private readonly Dictionary<Type, object> _assetLoaders = new();
-    private readonly Dictionary<string, object> _assetsCache = new();
+    private readonly Dictionary<Type, Dictionary<string, object>> _assetsCache = new();
 
     public AssetsManager(IAssetResolver assetResolver)
     {
@@ -20,7 +20,13 @@ public class AssetsManager : IAssetsManager
     {
         path = path.Replace('\\', '/'); //全部转换成正斜杠标准
 
-        if (_assetsCache.TryGetValue(path, out var cached))
+        if (!_assetsCache.TryGetValue(typeof(T), out var typeSpecifiedCache))
+        {
+            typeSpecifiedCache = new();
+            _assetsCache.Add(typeof(T), typeSpecifiedCache);
+        }
+
+        if (typeSpecifiedCache.TryGetValue(path, out var cached))
             return (T)cached;
 
         var directory = Path.GetDirectoryName(path) ?? string.Empty;
@@ -31,14 +37,14 @@ public class AssetsManager : IAssetsManager
         var asset = loader.Load(context, assetName) ?? throw new NullReferenceException();
 
         if (cache)
-            _assetsCache.Add(path, asset);
+            typeSpecifiedCache.Add(path, asset);
 
         return asset;
     }
 
-    public void Unload(string path)
+    public void Unload<T>(string path)
     {
-        _assetsCache.Remove(path);
+        _assetsCache[typeof(T)].Remove(path);
     }
 
     public void ClearCache()

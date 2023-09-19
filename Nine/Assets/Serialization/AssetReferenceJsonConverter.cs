@@ -1,15 +1,18 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using Zio;
 
 namespace Nine.Assets.Serialization;
 
 public class AssetReferenceJsonConverter<T> : JsonConverter<T> where T : class
 {
-    private AssetsContext _context;
+    private readonly IAssetsManager _assets;
+    private readonly UPath _directory;
 
-    public AssetReferenceJsonConverter(AssetsContext context)
+    public AssetReferenceJsonConverter(IAssetsManager assets, in UPath directory)
     {
-        _context = context;
+        _assets = assets;
+        _directory = directory;
     }
 
     public override T? Read(ref Utf8JsonReader reader, Type typeToConvert,
@@ -20,7 +23,7 @@ public class AssetReferenceJsonConverter<T> : JsonConverter<T> where T : class
         if (string.IsNullOrEmpty(path))
             return null;
 
-        return _context.Load<T>(path);
+        return _assets.Load<T>(UPath.Combine(_directory, path));
     }
 
     public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)

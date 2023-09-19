@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Zio;
 
 namespace Nine.Assets;
 
@@ -24,9 +25,9 @@ public class Texture2DLoader : IAssetLoader<Texture2D>
         return (byte)fr;
     }
 
-    public Texture2D Load(AssetsContext context, string asset)
+    public Texture2D Load(IFileSystem fs, IAssetsManager assets, in UPath path)
     {
-        using var fileStream = context.Open(asset);
+        using var fileStream = fs.OpenFile(path, FileMode.Open, FileAccess.Read);
 
         var rawTexture = Texture2D.FromStream(GraphicsDevice, fileStream);
 

@@ -1,10 +1,12 @@
-﻿namespace Nine.Assets;
+﻿using Zio;
+
+namespace Nine.Assets;
 
 public class StringLoader : IAssetLoader<string>
 {
-    public string Load(AssetsContext context, string asset)
+    public string Load(IFileSystem fs, IAssetsManager assets, in UPath path)
     {
-        using var fileStream = context.Open(asset);
+        using var fileStream = fs.OpenFile(path, FileMode.Open, FileAccess.Read);
         using var textReader = new StreamReader(fileStream);
 
         return textReader.ReadToEnd();

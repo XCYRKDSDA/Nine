@@ -1,6 +1,8 @@
-﻿namespace Nine.Assets;
+﻿using Zio;
+
+namespace Nine.Assets;
 
 public interface IAssetLoader<T>
 {
-    T Load(AssetsContext context, string asset);
+    T Load(IFileSystem fs, IAssetsManager assets, in UPath path);
 }

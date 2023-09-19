@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.Loader;
+using Zio;
 
 namespace Nine.Assets;
 
@@ -12,9 +13,9 @@ public class AssemblyLoader : IAssetLoader<Assembly>
         Domain = domain;
     }
 
-    public Assembly Load(AssetsContext context, string asset)
+    public Assembly Load(IFileSystem fs, IAssetsManager assets, in UPath path)
     {
-        using var fileStream = context.Open(asset);
+        using var fileStream = fs.OpenFile(path, FileMode.Open, FileAccess.Read);
 
         return Domain.LoadFromStream(fileStream);
     }

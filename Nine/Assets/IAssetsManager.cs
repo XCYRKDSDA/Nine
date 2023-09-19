@@ -1,10 +1,12 @@
-﻿namespace Nine.Assets;
+﻿using Zio;
+
+namespace Nine.Assets;
 
 public interface IAssetsManager
 {
-    T Load<T>(string path, bool cache = true);
+    T Load<T>(in UPath path, bool cache = true);
 
-    void Unload<T>(string path);
+    void Unload<T>(in UPath path);
 
     void ClearCache();
 }

@@ -1,23 +1,25 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 using Nine.Graphics;
+using Zio;
 
 namespace Nine.Assets;
 
 public class TextureRegionLoader : IAssetLoader<TextureRegion>
 {
-
-    public TextureRegion Load(AssetsContext context, string asset)
+    public TextureRegion Load(IFileSystem fs, IAssetsManager assets, in UPath path)
     {
-        if (!asset.Contains(':'))
-            return new(context.Load<Texture2D>(asset));
+        var file = path.GetName();
+        if (!file.Contains(':'))
+            return new(assets.Load<Texture2D>(path));
 
-        var parts = asset.Split(':');
+        var parts = file.Split(':');
         if (parts.Length != 2)
             throw new ArgumentException();
         var atlasFile = parts[0];
         var subTextureName = parts[1];
 
-        var textureAtlas = context.Load<TextureAtlas>(atlasFile);
+        var directory = path.GetDirectory();
+        var textureAtlas = assets.Load<TextureAtlas>(UPath.Combine(directory, atlasFile));
         return textureAtlas[subTextureName];
     }
 }

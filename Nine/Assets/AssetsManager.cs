@@ -1,14 +1,16 @@
-﻿namespace Nine.Assets;
+﻿using Zio;
+
+namespace Nine.Assets;
 
 public class AssetsManager : IAssetsManager
 {
-    private readonly IAssetResolver _assetResolver;
+    private readonly IFileSystem _assetsFileSystem;
     private readonly Dictionary<Type, object> _assetLoaders = new();
-    private readonly Dictionary<Type, Dictionary<string, object>> _assetsCache = new();
+    private readonly Dictionary<Type, Dictionary<UPath, object>> _assetsCache = new();
 
-    public AssetsManager(IAssetResolver assetResolver)
+    public AssetsManager(IFileSystem assetsFileSystem)
     {
-        _assetResolver = assetResolver;
+        _assetsFileSystem = assetsFileSystem;
     }
 
     public void RegisterLoader<T>(IAssetLoader<T> loader)
@@ -16,9 +18,9 @@ public class AssetsManager : IAssetsManager
         _assetLoaders.Add(typeof(T), loader);
     }
 
-    public T Load<T>(string path, bool cache = true)
+    public T Load<T>(in UPath path, bool cache = true)
     {
-        path = path.Replace('\\', '/'); //全部转换成正斜杠标准
+        var absPath = path.ToAbsolute(); //以绝对路径为准
 
         if (!_assetsCache.TryGetValue(typeof(T), out var typeSpecifiedCache))
         {
@@ -26,25 +28,21 @@ public class AssetsManager : IAssetsManager
             _assetsCache.Add(typeof(T), typeSpecifiedCache);
         }
 
-        if (typeSpecifiedCache.TryGetValue(path, out var cached))
+        if (typeSpecifiedCache.TryGetValue(absPath, out var cached))
             return (T)cached;
 
-        var directory = Path.GetDirectoryName(path) ?? string.Empty;
-        var assetName = Path.GetFileName(path);
-        var context = new AssetsContext(_assetResolver, this, directory);
-
         var loader = _assetLoaders[typeof(T)] as IAssetLoader<T> ?? throw new NullReferenceException();
-        var asset = loader.Load(context, assetName) ?? throw new NullReferenceException();
+        var asset = loader.Load(_assetsFileSystem, this, absPath) ?? throw new NullReferenceException();
 
         if (cache)
-            typeSpecifiedCache.Add(path, asset);
+            typeSpecifiedCache.Add(absPath, asset);
 
         return asset;
     }
 
-    public void Unload<T>(string path)
+    public void Unload<T>(in UPath path)
     {
-        _assetsCache[typeof(T)].Remove(path);
+        _assetsCache[typeof(T)].Remove(path.ToAbsolute());
     }
 
     public void ClearCache()

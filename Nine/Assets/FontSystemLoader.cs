@@ -1,14 +1,17 @@
 ﻿using FontStashSharp;
+using Zio;
 
 namespace Nine.Assets;
 
 public class FontSystemLoader : IAssetLoader<FontSystem>
 {
-    public FontSystem Load(AssetsContext context, string asset)
+    public FontSystem Load(IFileSystem fs, IAssetsManager assets, in UPath path)
     {
         var fontSystem = new FontSystem();
-        foreach (var font in asset.Split(','))
-            fontSystem.AddFont(context.Open(font));
+
+        var directory = path.GetDirectory();
+        foreach (var file in path.GetName().Split(':'))
+            fontSystem.AddFont(fs.OpenFile(UPath.Combine(directory, file), FileMode.Open, FileAccess.Read));
 
         return fontSystem;
     }

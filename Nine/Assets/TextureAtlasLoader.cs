@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Nine.Graphics;
+using Zio;
 
 namespace Nine.Assets;
 
@@ -25,13 +26,14 @@ public class TextureAtlasLoader : IAssetLoader<TextureAtlas>
         public int H { get; set; }
     }
 
-    public TextureAtlas Load(AssetsContext context, string asset)
+    public TextureAtlas Load(IFileSystem fs, IAssetsManager assets, in UPath path)
     {
-        using var fileStream = context.Open(asset);
+        using var fileStream = fs.OpenFile(path, FileMode.Open, FileAccess.Read);
+
         var serializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
         var jsonTextureAtlas = JsonSerializer.Deserialize<JsonTextureAtlas>(fileStream, serializerOptions) ?? throw new JsonException();
 
-        var sourceTexture = context.Load<Texture2D>(jsonTextureAtlas.Image);
+        var sourceTexture = assets.Load<Texture2D>(UPath.Combine(path.GetDirectory(), jsonTextureAtlas.Image));
         var textureAtlas = new TextureAtlas(sourceTexture);
 
         foreach (var (key, jsonSubTexture) in jsonTextureAtlas.Regions)

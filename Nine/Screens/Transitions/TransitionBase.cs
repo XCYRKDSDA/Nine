@@ -1,15 +1,13 @@
-﻿using Microsoft.Xna.Framework;
-
-namespace Nine.Screens.Transitions;
+﻿namespace Nine.Screens.Transitions;
 
 /// <summary>
 /// 过渡画面基类. 可以通过直接传入新画面实例的方式构造, 也可以通过传入新画面构造任务的方式构造
 /// </summary>
 public abstract class TransitionBase : ScreenBase
 {
-    protected TransitionBase(Game game, ScreenManager screenManager,
+    protected TransitionBase(ScreenManager screenManager,
                              IScreen prevScreen, IScreen nextScreen)
-        : base(game, screenManager)
+        : base(screenManager)
     {
         PrevScreen = prevScreen;
 
@@ -17,9 +15,9 @@ public abstract class TransitionBase : ScreenBase
         _nextScreen = nextScreen;
     }
 
-    protected TransitionBase(Game game, ScreenManager screenManager,
+    protected TransitionBase(ScreenManager screenManager,
                              IScreen prevScreen, Task<IScreen> nextScreenLoader)
-        : base(game, screenManager)
+        : base(screenManager)
     {
         PrevScreen = prevScreen;
 

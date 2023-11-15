@@ -4,13 +4,10 @@ namespace Nine.Screens;
 
 public abstract class ScreenBase : IScreen
 {
-    protected ScreenBase(Game game, ScreenManager screenManager)
+    protected ScreenBase(ScreenManager screenManager)
     {
-        Game = game;
         ScreenManager = screenManager;
     }
-
-    public Game Game { get; private set; }
 
     public ScreenManager ScreenManager { get; private set; }
 

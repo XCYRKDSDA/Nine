@@ -49,18 +49,21 @@ public class FadeTransition : TransitionBase
         new(new(1, -1, 0), Color.Black)
     };
 
+    private readonly GraphicsDevice _graphicsDevice;
     private readonly BasicEffect _effect;
 
-    public FadeTransition(Game game, ScreenManager screenManager, IScreen prevScreen, IScreen nextScreen)
-        : base(game, screenManager, prevScreen, nextScreen)
+    public FadeTransition(GraphicsDevice graphicsDevice, ScreenManager screenManager, IScreen prevScreen, IScreen nextScreen)
+        : base(screenManager, prevScreen, nextScreen)
     {
-        _effect = new(game.GraphicsDevice) { VertexColorEnabled = true };
+        _graphicsDevice = graphicsDevice;
+        _effect = new(graphicsDevice) { VertexColorEnabled = true };
     }
 
-    public FadeTransition(Game game, ScreenManager screenManager, IScreen prevScreen, Task<IScreen> nextScreenLoader)
-        : base(game, screenManager, prevScreen, nextScreenLoader)
+    public FadeTransition(GraphicsDevice graphicsDevice, ScreenManager screenManager, IScreen prevScreen, Task<IScreen> nextScreenLoader)
+        : base(screenManager, prevScreen, nextScreenLoader)
     {
-        _effect = new(game.GraphicsDevice) { VertexColorEnabled = true };
+        _graphicsDevice = graphicsDevice;
+        _effect = new(graphicsDevice) { VertexColorEnabled = true };
     }
 
     public override void Update(GameTime gameTime)
@@ -103,7 +106,7 @@ public class FadeTransition : TransitionBase
         foreach (var pass in _effect.CurrentTechnique.Passes)
         {
             pass.Apply();
-            Game.GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, _vertices, 0, 2);
+            _graphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, _vertices, 0, 2);
         }
     }
 }

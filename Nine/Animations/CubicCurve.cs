@@ -32,13 +32,13 @@ public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatab
 
     private ValueT GetGradient(int idx)
     {
-        if (idx <= 0 || idx >= _keys.Count - 1)
-            return GenericMathHelper<ValueT>.Zero;
-
         var key = _keys[idx];
 
         if (key.Gradient.HasValue)
             return key.Gradient.Value;
+
+        if (idx <= 0 || idx >= _keys.Count - 1)
+            return GenericMathHelper<ValueT>.Zero;
 
         var prevKey = _keys[idx - 1];
         var nextKey = _keys[idx + 1];
@@ -70,8 +70,8 @@ public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatab
 
         // 标准化
         var u = rightKey.Position - leftKey.Position;
-        m0 = GenericMathHelper<ValueT>.Div(in m0, u);
-        m1 = GenericMathHelper<ValueT>.Div(in m1, u);
+        m0 = GenericMathHelper<ValueT>.Mul(in m0, u);
+        m1 = GenericMathHelper<ValueT>.Mul(in m1, u);
         var t = (position - leftKey.Position) / u;
 
         // 计算结果

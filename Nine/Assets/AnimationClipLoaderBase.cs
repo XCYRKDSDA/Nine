@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Text.Json;
 using Nine.Animations;
+using Nine.Assets.Serialization;
 using Zio;
 
 namespace Nine.Assets;
@@ -29,6 +30,8 @@ public abstract class AnimationClipLoaderBase<ObjectT> : IAssetLoader<AnimationC
     {
         public float Duration { get; set; } = float.NaN;
 
+        public AnimationLoopMode LoopMode { get; set; } = AnimationLoopMode.RunOnce; 
+
         public Dictionary<string, JsonCurveKeyFrame[]> Curves { get; set; } = [];
     }
 
@@ -52,7 +55,11 @@ public abstract class AnimationClipLoaderBase<ObjectT> : IAssetLoader<AnimationC
     private static readonly MethodInfo _loadCurveMethod =
         typeof(AnimationClipLoaderBase<ObjectT>).GetMethod("LoadCurve", BindingFlags.Instance | BindingFlags.NonPublic)!;
 
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true ,
+        Converters = { new AnimationLoopModeJsonConverter() }
+    };
 
     public AnimationClip<ObjectT> Load(IFileSystem fs, IAssetsManager assets, in UPath path)
     {
@@ -60,7 +67,7 @@ public abstract class AnimationClipLoaderBase<ObjectT> : IAssetLoader<AnimationC
 
         var jsonClip = JsonSerializer.Deserialize<JsonAnimationClip>(stream, _jsonSerializerOptions) ?? throw new JsonException();
 
-        var clip = new AnimationClip<ObjectT> { Length = jsonClip.Duration };
+        var clip = new AnimationClip<ObjectT> { Length = jsonClip.Duration, LoopMode = jsonClip.LoopMode };
 
         foreach (var (propertyKey, keys) in jsonClip.Curves)
         {

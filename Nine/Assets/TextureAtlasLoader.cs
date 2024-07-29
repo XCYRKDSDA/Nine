@@ -24,6 +24,8 @@ public class TextureAtlasLoader : IAssetLoader<TextureAtlas>
         public int W { get; set; }
 
         public int H { get; set; }
+
+        public int[]? Padding { get; set; }
     }
 
     public TextureAtlas Load(IFileSystem fs, IAssetsManager assets, in UPath path)
@@ -39,7 +41,20 @@ public class TextureAtlasLoader : IAssetLoader<TextureAtlas>
         foreach (var (key, jsonSubTexture) in jsonTextureAtlas.Regions)
         {
             var sourceRegion = new Rectangle(jsonSubTexture.X, jsonSubTexture.Y, jsonSubTexture.W, jsonSubTexture.H);
-            textureAtlas.Add(key, sourceRegion);
+            if (jsonSubTexture.Padding is null)
+                textureAtlas.Add(key, sourceRegion);
+            else
+            {
+                var padding = jsonSubTexture.Padding.Length switch
+                {
+                    1 => new NinePatchPadding(jsonSubTexture.Padding[0]),
+                    2 => new NinePatchPadding(jsonSubTexture.Padding[0], jsonSubTexture.Padding[1]),
+                    4 => new NinePatchPadding(jsonSubTexture.Padding[0], jsonSubTexture.Padding[1],
+                                              jsonSubTexture.Padding[2], jsonSubTexture.Padding[3]),
+                    _ => throw new NotImplementedException()
+                };
+                textureAtlas.Add(key, sourceRegion, padding);
+            }
         }
 
         return textureAtlas;

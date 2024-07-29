@@ -41,4 +41,9 @@ public class TextureAtlas : IReadOnlyDictionary<string, TextureRegion>
     {
         _regions[key] = new(_texture, region);
     }
+
+    public void Add(string key, Rectangle region, NinePatchPadding padding)
+    {
+        _regions[key] = new NinePatchRegion(_texture, padding, region);
+    }
 }

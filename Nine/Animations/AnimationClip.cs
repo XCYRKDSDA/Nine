@@ -5,7 +5,7 @@ public class AnimationClip<ObjectT>
     /// <summary>
     /// 该动画剪辑的所有轨道
     /// </summary>
-    public TrackCollection<ObjectT> Tracks { get; } = new();
+    public TrackCollection<ObjectT> Tracks { get; set; } = [];
 
     /// <summary>
     /// 该动画剪辑的长度

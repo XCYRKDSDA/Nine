@@ -13,4 +13,7 @@
     <PackageReference Include="NCalcSync" Version="5.2.0" />
     <PackageReference Include="Zio" Version="0.17.0" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\FMOD\FMOD.csproj" />
+  </ItemGroup>
 </Project>

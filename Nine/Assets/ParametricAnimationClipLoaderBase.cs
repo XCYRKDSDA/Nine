@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Nine.Animations;
 using Nine.Assets.Serialization;
 using Zio;
@@ -23,6 +24,8 @@ public abstract class ParametricAnimationClipLoaderBase<TObject> : IAssetLoader<
         public IParametric<float> Time { get; set; }
 
         public JsonElement Value { get; set; }
+
+        public CurveKeyType Type { get; set; } = CurveKeyType.Linear;
 
         public JsonElement? Gradient { get; set; }
     }
@@ -50,6 +53,7 @@ public abstract class ParametricAnimationClipLoaderBase<TObject> : IAssetLoader<
             var key = new ParametricCubicCurveKey<TValue>(
                 jsonKey.Time,
                 ParseValueImpl<TValue>(jsonKey.Value),
+                jsonKey.Type,
                 jsonKey.Gradient.HasValue ? ParseValueImpl<TValue>(jsonKey.Gradient.Value) : null);
             curve.Keys.Add(key);
         }
@@ -66,7 +70,8 @@ public abstract class ParametricAnimationClipLoaderBase<TObject> : IAssetLoader<
         Converters =
         {
             new AnimationLoopModeJsonConverter(),
-            new ParametricFloatJsonConverter()
+            new ParametricFloatJsonConverter(),
+            new JsonStringEnumConverter<CurveKeyType>()
         }
     };
 

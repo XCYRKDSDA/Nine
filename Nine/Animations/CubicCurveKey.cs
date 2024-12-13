@@ -6,24 +6,31 @@ public struct CubicCurveKey<T> : IEquatable<CubicCurveKey<T>>
     public float Position;
 
     public T Value;
+    
+    public CurveKeyType Type;
 
     public T? Gradient;
 
-    public CubicCurveKey(float position, T value, T? gradient = null)
+    public CubicCurveKey(float position, T value, CurveKeyType type, T? gradient = null)
     {
         Position = position;
         Value = value;
+        Type = type;
         Gradient = gradient;
     }
 
-    public readonly bool Equals(CubicCurveKey<T> other) => Position.Equals(other.Position) && Value.Equals(other.Value) && Gradient!.Equals(other.Gradient);
+    public bool Equals(CubicCurveKey<T> other)
+        => Position.Equals(other.Position) && Value.Equals(other.Value) && Type == other.Type && Nullable.Equals(Gradient, other.Gradient);
 
-    public override readonly bool Equals(object? obj) => obj is CubicCurveKey<T> other && Equals(other);
+    public override bool Equals(object? obj)
+        => obj is CubicCurveKey<T> other && Equals(other);
 
-    public static bool operator ==(CubicCurveKey<T> left, CubicCurveKey<T> right) => left.Equals(right);
+    public override int GetHashCode()
+        => HashCode.Combine(Position, Value, (int)Type, Gradient);
 
-    public static bool operator !=(CubicCurveKey<T> left, CubicCurveKey<T> right) => !(left == right);
+    public static bool operator ==(CubicCurveKey<T> left, CubicCurveKey<T> right)
+        => left.Equals(right);
 
-    public override readonly int GetHashCode() => Position.GetHashCode() ^ Value.GetHashCode() ^ Gradient!.GetHashCode();
-
+    public static bool operator !=(CubicCurveKey<T> left, CubicCurveKey<T> right)
+        => !(left == right);
 }

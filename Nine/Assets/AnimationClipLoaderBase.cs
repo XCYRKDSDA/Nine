@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Nine.Animations;
 using Nine.Assets.Serialization;
 using Zio;
@@ -23,6 +24,8 @@ public abstract class AnimationClipLoaderBase<ObjectT> : IAssetLoader<AnimationC
 
         public JsonElement Value { get; set; }
 
+        public CurveKeyType Type { get; set; } = CurveKeyType.Linear;
+
         public JsonElement? Gradient { get; set; }
     }
 
@@ -45,6 +48,7 @@ public abstract class AnimationClipLoaderBase<ObjectT> : IAssetLoader<AnimationC
         {
             var key = new CubicCurveKey<ValueT>(jsonKey.Time,
                                                 ParseValueImpl<ValueT>(jsonKey.Value),
+                                                jsonKey.Type,
                                                 jsonKey.Gradient.HasValue ? ParseValueImpl<ValueT>(jsonKey.Gradient.Value) : null);
             curve.Keys.Add(key);
         }
@@ -58,7 +62,11 @@ public abstract class AnimationClipLoaderBase<ObjectT> : IAssetLoader<AnimationC
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true ,
-        Converters = { new AnimationLoopModeJsonConverter() }
+        Converters =
+        {
+            new AnimationLoopModeJsonConverter(),
+            new JsonStringEnumConverter<CurveKeyType>()
+        }
     };
 
     public AnimationClip<ObjectT> Load(IFileSystem fs, IAssetsManager assets, in UPath path)

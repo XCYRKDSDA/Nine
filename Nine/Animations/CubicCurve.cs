@@ -1,4 +1,6 @@
-﻿namespace Nine.Animations;
+﻿using System.ComponentModel;
+
+namespace Nine.Animations;
 
 public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatable<ValueT>
 {
@@ -34,16 +36,37 @@ public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatab
     {
         var key = _keys[idx];
 
-        if (key.Gradient.HasValue)
-            return key.Gradient.Value;
-
-        if (idx <= 0 || idx >= _keys.Count - 1)
+        if (key.Type == CurveKeyType.Step)
             return GenericMathHelper<ValueT>.Zero;
 
-        var prevKey = _keys[idx - 1];
-        var nextKey = _keys[idx + 1];
+        if (key.Type == CurveKeyType.Linear)
+        {
+            if (idx >= _keys.Count - 1)
+                return GenericMathHelper<ValueT>.Zero;
 
-        return GenericMathHelper<ValueT>.Div(GenericMathHelper<ValueT>.Sub(in nextKey.Value, in prevKey.Value), nextKey.Position - prevKey.Position);
+            var nextKey = _keys[idx + 1];
+            return GenericMathHelper<ValueT>.Div(
+                GenericMathHelper<ValueT>.Sub(in nextKey.Value, in key.Value),
+                nextKey.Position - key.Position
+            );
+        }
+
+        if (key.Type == CurveKeyType.Smooth)
+        {
+            if (key.Gradient.HasValue)
+                return key.Gradient.Value;
+
+            if (idx <= 0 || idx >= _keys.Count - 1)
+                return GenericMathHelper<ValueT>.Zero;
+
+            var prevKey = _keys[idx - 1];
+            var nextKey = _keys[idx + 1];
+
+            return GenericMathHelper<ValueT>.Div(GenericMathHelper<ValueT>.Sub(in nextKey.Value, in prevKey.Value),
+                nextKey.Position - prevKey.Position);
+        }
+
+        throw new InvalidEnumArgumentException();
     }
 
     public ValueT Evaluate(float position)
@@ -52,38 +75,60 @@ public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatab
         var (leftKeyIdx, rightKeyIdx) = FindKeysIndices(position);
 
         // 处理特殊情况
-        if (leftKeyIdx < 0)
+        if (leftKeyIdx < 0) // 在序列前
             return Keys[0].Value;
-        else if (rightKeyIdx < 0)
+        else if (rightKeyIdx < 0) // 在序列后
             return Keys[^1].Value;
-        else if (leftKeyIdx == rightKeyIdx)
+        else if (leftKeyIdx == rightKeyIdx) // 直接找到关键帧
             return Keys[leftKeyIdx].Value;
 
         var leftKey = Keys[leftKeyIdx];
         var rightKey = Keys[rightKeyIdx];
 
-        // 确定两侧关键帧上的值和斜率
-        var p0 = leftKey.Value;
-        var p1 = rightKey.Value;
-        var m0 = GetGradient(leftKeyIdx);
-        var m1 = GetGradient(rightKeyIdx);
+        // 阶跃关键帧
+        if (leftKey.Type == CurveKeyType.Step)
+            return leftKey.Value;
 
-        // 标准化
-        var u = rightKey.Position - leftKey.Position;
-        m0 = GenericMathHelper<ValueT>.Mul(in m0, u);
-        m1 = GenericMathHelper<ValueT>.Mul(in m1, u);
-        var t = (position - leftKey.Position) / u;
+        // 线性关键帧
+        if (leftKey.Type == CurveKeyType.Linear)
+        {
+            var k = (position - leftKey.Position) / (rightKey.Position - leftKey.Position);
+            return GenericMathHelper<ValueT>.Add(
+                GenericMathHelper<ValueT>.Mul(in leftKey.Value, 1 - k),
+                GenericMathHelper<ValueT>.Mul(in rightKey.Value, k)
+            );
+        }
 
-        // 计算结果
-        var t2 = t * t;
-        var t3 = t2 * t;
-        var h00 = 2 * t3 - 3 * t2 + 1;
-        var h10 = t3 - 2 * t2 + t;
-        var h01 = -2 * t3 + 3 * t2;
-        var h11 = t3 - t2;
-        return GenericMathHelper<ValueT>.Add(
-            GenericMathHelper<ValueT>.Add(GenericMathHelper<ValueT>.Mul(in p0, h00), GenericMathHelper<ValueT>.Mul(in m0, h10)),
-            GenericMathHelper<ValueT>.Add(GenericMathHelper<ValueT>.Mul(in p1, h01), GenericMathHelper<ValueT>.Mul(in m1, h11))
-        );
+        // 三次关键帧
+        if (leftKey.Type == CurveKeyType.Smooth)
+        {
+            // 确定两侧关键帧上的值和斜率
+            var p0 = leftKey.Value;
+            var p1 = rightKey.Value;
+            var m0 = GetGradient(leftKeyIdx);
+            var m1 = GetGradient(rightKeyIdx);
+
+            // 标准化
+            var u = rightKey.Position - leftKey.Position;
+            m0 = GenericMathHelper<ValueT>.Mul(in m0, u);
+            m1 = GenericMathHelper<ValueT>.Mul(in m1, u);
+            var t = (position - leftKey.Position) / u;
+
+            // 计算结果
+            var t2 = t * t;
+            var t3 = t2 * t;
+            var h00 = 2 * t3 - 3 * t2 + 1;
+            var h10 = t3 - 2 * t2 + t;
+            var h01 = -2 * t3 + 3 * t2;
+            var h11 = t3 - t2;
+            return GenericMathHelper<ValueT>.Add(
+                GenericMathHelper<ValueT>.Add(GenericMathHelper<ValueT>.Mul(in p0, h00),
+                    GenericMathHelper<ValueT>.Mul(in m0, h10)),
+                GenericMathHelper<ValueT>.Add(GenericMathHelper<ValueT>.Mul(in p1, h01),
+                    GenericMathHelper<ValueT>.Mul(in m1, h11))
+            );
+        }
+
+        throw new InvalidEnumArgumentException();
     }
 }

@@ -2,11 +2,13 @@
 
 namespace Nine.Animations;
 
-public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatable<ValueT>
+public class CubicCurve<ValueT> : ICurve<ValueT>
 {
-    private readonly CubicCurveKeyCollection<ValueT> _keys = new();
+    private readonly CurveKeyCollection<ValueT> _keys = [];
 
-    public CubicCurveKeyCollection<ValueT> Keys => _keys;
+    public CurveKeyCollection<ValueT> Keys => _keys;
+
+    ICurveKeyCollection<ValueT> ICurve<ValueT>.Keys => _keys;
 
     private (int, int) FindKeysIndices(float position)
     {
@@ -53,8 +55,8 @@ public class CubicCurve<ValueT> : ICurve<ValueT> where ValueT : struct, IEquatab
 
         if (key.Type == CurveKeyType.Smooth)
         {
-            if (key.Gradient.HasValue)
-                return key.Gradient.Value;
+            if (key.Gradient is not null)
+                return key.Gradient;
 
             if (idx <= 0 || idx >= _keys.Count - 1)
                 return GenericMathHelper<ValueT>.Zero;

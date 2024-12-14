@@ -1,7 +1,7 @@
 namespace Nine.Animations;
 
 public class ParametricTrackCollection<TObject>
-    : Dictionary<(IProperty<TObject>, Type), IParametricCurve>, IParametric<TrackCollection<TObject>>
+    : Dictionary<(IProperty<TObject>, Type), IParametric<ICurve>>, IParametric<TrackCollection<TObject>>
 {
     public TrackCollection<TObject> Bake(IDictionary<string, object?>? parameters = null)
     {

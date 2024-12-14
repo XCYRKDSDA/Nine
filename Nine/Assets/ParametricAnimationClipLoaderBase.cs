@@ -41,28 +41,33 @@ public abstract class ParametricAnimationClipLoaderBase<TObject> : IAssetLoader<
         public Dictionary<string, JsonCurveKeyFrame[]> Curves { get; set; } = [];
     }
 
-    protected abstract IParametric<TValue> ParseValueImpl<TValue>(in JsonElement json);
-
-    private ParametricCubicCurve<TValue> LoadCurve<TValue>(JsonCurveKeyFrame[] jsonKeys)
-        where TValue : struct, IEquatable<TValue>
+    private static IParametric<TCurve> LoadCurve<TValue, TCurve>(
+        JsonCurveKeyFrame[] jsonKeys, JsonConverter<IParametric<TValue>>? parser)
+        where TCurve : ICurve<TValue>, new() where TValue : struct, IEquatable<TValue>
     {
-        var curve = new ParametricCubicCurve<TValue>();
+        var curve = new ParametricCurve<TCurve, TValue>();
+
+        var jsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        if (parser is not null) jsonSerializerOptions.Converters.Add(parser);
 
         foreach (var jsonKey in jsonKeys)
         {
-            var key = new ParametricCubicCurveKey<TValue>(
+            var key = new ParametricCurveKey<TValue>(
                 jsonKey.Time,
-                ParseValueImpl<TValue>(jsonKey.Value),
+                jsonKey.Value.Deserialize<IParametric<TValue>>(jsonSerializerOptions)!,
                 jsonKey.Type,
-                jsonKey.Gradient.HasValue ? ParseValueImpl<TValue>(jsonKey.Gradient.Value) : null);
+                jsonKey.Gradient?.Deserialize<IParametric<TValue>>(jsonSerializerOptions));
             curve.Keys.Add(key);
         }
 
         return curve;
     }
 
-    private static readonly MethodInfo _loadCurveMethod = typeof(ParametricAnimationClipLoaderBase<TObject>)
-        .GetMethod("LoadCurve", BindingFlags.Instance | BindingFlags.NonPublic)!;
+    private static readonly MethodInfo _loadCurveMethod =
+        typeof(ParametricAnimationClipLoaderBase<TObject>).GetMethod("LoadCurve",
+            BindingFlags.Static | BindingFlags.NonPublic)!;
+
+    public Dictionary<Type, (JsonConverter? Parser, Type CurveType)> ValueTypes { get; } = [];
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -86,9 +91,13 @@ public abstract class ParametricAnimationClipLoaderBase<TObject> : IAssetLoader<
 
         foreach (var (propertyKey, keys) in jsonClip.Curves)
         {
-            var (property, type) = ParsePropertyImpl(propertyKey);
-            clip.Tracks.Add((property, type),
-                            (IParametricCurve)_loadCurveMethod.MakeGenericMethod(type).Invoke(this, [keys])!);
+            var (property, valueType) = ParsePropertyImpl(propertyKey);
+            var (parser, curveType) = ValueTypes[valueType];
+
+            var loadCurveMethod = _loadCurveMethod.MakeGenericMethod(valueType, curveType);
+            var parametricCurve = (loadCurveMethod.Invoke(null, [keys, parser]) as IParametric<ICurve>)!;
+
+            clip.Tracks.Add((property, valueType), parametricCurve);
         }
 
         foreach (var (variableName, defaultValue) in jsonClip.Variables)

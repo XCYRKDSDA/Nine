@@ -1,12 +1,11 @@
 ﻿namespace Nine.Animations;
 
-public readonly struct ParametricCubicCurveKey<TValue>(
+public readonly struct ParametricCurveKey<TValue>(
     IParametric<float> position,
     IParametric<TValue> value,
     CurveKeyType type,
     IParametric<TValue>? gradient = null)
-    : IParametric<CubicCurveKey<TValue>>, IEquatable<ParametricCubicCurveKey<TValue>>
-    where TValue : struct, IEquatable<TValue>
+    : IParametric<CurveKey<TValue>>, IEquatable<ParametricCurveKey<TValue>>
 {
     public readonly IParametric<float> Position = position;
 
@@ -16,30 +15,30 @@ public readonly struct ParametricCubicCurveKey<TValue>(
 
     public readonly IParametric<TValue>? Gradient = gradient;
 
-    public CubicCurveKey<TValue> Bake(IDictionary<string, object?>? parameters = null)
+    public CurveKey<TValue> Bake(IDictionary<string, object?>? parameters = null)
         => new(
             Position.Bake(parameters),
             Value.Bake(parameters),
             Type,
-            Gradient?.Bake(parameters)
+            Gradient is null ? default : Gradient.Bake(parameters)
         );
 
     #region IEquatable
 
-    public bool Equals(ParametricCubicCurveKey<TValue> other)
+    public bool Equals(ParametricCurveKey<TValue> other)
         => Position.Equals(other.Position) && Value.Equals(other.Value) && Type == other.Type &&
            Equals(Gradient, other.Gradient);
 
     public override bool Equals(object? obj)
-        => obj is ParametricCubicCurveKey<TValue> other && Equals(other);
+        => obj is ParametricCurveKey<TValue> other && Equals(other);
 
     public override int GetHashCode()
         => HashCode.Combine(Position, Value, (int)Type, Gradient);
 
-    public static bool operator ==(ParametricCubicCurveKey<TValue> left, ParametricCubicCurveKey<TValue> right)
+    public static bool operator ==(ParametricCurveKey<TValue> left, ParametricCurveKey<TValue> right)
         => left.Equals(right);
 
-    public static bool operator !=(ParametricCubicCurveKey<TValue> left, ParametricCubicCurveKey<TValue> right)
+    public static bool operator !=(ParametricCurveKey<TValue> left, ParametricCurveKey<TValue> right)
         => !(left == right);
 
     #endregion

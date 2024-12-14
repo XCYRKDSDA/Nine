@@ -12,6 +12,7 @@ public abstract class AnimationClipLoaderBase<ObjectT> : IAssetLoader<AnimationC
     #region IProperty Builder
 
     public delegate ValueT Getter<ValueT>(in ObjectT obj);
+
     public delegate void Setter<ValueT>(ref ObjectT obj, in ValueT value);
 
     protected abstract (IProperty<ObjectT>, Type) ParsePropertyImpl(string property);
@@ -33,23 +34,27 @@ public abstract class AnimationClipLoaderBase<ObjectT> : IAssetLoader<AnimationC
     {
         public float Duration { get; set; } = float.NaN;
 
-        public AnimationLoopMode LoopMode { get; set; } = AnimationLoopMode.RunOnce; 
+        public AnimationLoopMode LoopMode { get; set; } = AnimationLoopMode.RunOnce;
 
         public Dictionary<string, JsonCurveKeyFrame[]> Curves { get; set; } = [];
     }
 
-    protected abstract ValueT ParseValueImpl<ValueT>(in JsonElement json);
-
-    private CubicCurve<ValueT> LoadCurve<ValueT>(JsonCurveKeyFrame[] jsonKeys) where ValueT : struct, IEquatable<ValueT>
+    private static CurveT LoadCurve<ValueT, CurveT>(JsonCurveKeyFrame[] jsonKeys, JsonConverter<ValueT>? parser)
+        where CurveT : ICurve<ValueT>, new()
     {
-        var curve = new CubicCurve<ValueT>();
+        var curve = new CurveT();
+
+        var jsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        if (parser is not null) jsonSerializerOptions.Converters.Add(parser);
 
         foreach (var jsonKey in jsonKeys)
         {
-            var key = new CubicCurveKey<ValueT>(jsonKey.Time,
-                                                ParseValueImpl<ValueT>(jsonKey.Value),
-                                                jsonKey.Type,
-                                                jsonKey.Gradient.HasValue ? ParseValueImpl<ValueT>(jsonKey.Gradient.Value) : null);
+            var key = new CurveKey<ValueT>(
+                jsonKey.Time,
+                jsonKey.Value.Deserialize<ValueT>(jsonSerializerOptions)!,
+                jsonKey.Type,
+                jsonKey.Gradient is null ? default : jsonKey.Gradient.Value.Deserialize<ValueT>(jsonSerializerOptions)
+            );
             curve.Keys.Add(key);
         }
 
@@ -57,11 +62,13 @@ public abstract class AnimationClipLoaderBase<ObjectT> : IAssetLoader<AnimationC
     }
 
     private static readonly MethodInfo _loadCurveMethod =
-        typeof(AnimationClipLoaderBase<ObjectT>).GetMethod("LoadCurve", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        typeof(AnimationClipLoaderBase<ObjectT>).GetMethod("LoadCurve", BindingFlags.Static | BindingFlags.NonPublic)!;
+
+    public Dictionary<Type, (JsonConverter? Parser, Type CurveType)> ValueTypes { get; } = [];
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
-        PropertyNameCaseInsensitive = true ,
+        PropertyNameCaseInsensitive = true,
         Converters =
         {
             new AnimationLoopModeJsonConverter(),
@@ -73,14 +80,20 @@ public abstract class AnimationClipLoaderBase<ObjectT> : IAssetLoader<AnimationC
     {
         using var stream = fs.OpenFile(path, FileMode.Open, FileAccess.Read);
 
-        var jsonClip = JsonSerializer.Deserialize<JsonAnimationClip>(stream, _jsonSerializerOptions) ?? throw new JsonException();
+        var jsonClip = JsonSerializer.Deserialize<JsonAnimationClip>(stream, _jsonSerializerOptions) ??
+                       throw new JsonException();
 
         var clip = new AnimationClip<ObjectT> { Length = jsonClip.Duration, LoopMode = jsonClip.LoopMode };
 
         foreach (var (propertyKey, keys) in jsonClip.Curves)
         {
-            var (property, type) = ParsePropertyImpl(propertyKey);
-            clip.Tracks.Add((property, type), (ICurve)_loadCurveMethod.MakeGenericMethod(type).Invoke(this, [keys])!);
+            var (property, valueType) = ParsePropertyImpl(propertyKey);
+            var (parser, curveType) = ValueTypes[valueType];
+
+            var loadCurveMethod = _loadCurveMethod.MakeGenericMethod(valueType, curveType);
+            var curve = (loadCurveMethod.Invoke(null, [keys, parser]) as ICurve)!;
+
+            clip.Tracks.Add((property, valueType), curve);
         }
 
         return clip;

@@ -3,9 +3,7 @@
 /// <summary>
 /// 不含值的类型信息的曲线接口
 /// </summary>
-public interface ICurve
-{
-}
+public interface ICurve;
 
 /// <summary>
 /// 具体指定了值的类型的泛型曲线接口

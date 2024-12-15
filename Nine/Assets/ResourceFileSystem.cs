@@ -26,7 +26,8 @@ public class ResourceFileSystem : ReadOnlyFileSystem
         }
     }
 
-    protected override Stream OpenFileImpl(UPath path, FileMode mode, FileAccess access, FileShare share = FileShare.None)
+    protected override Stream OpenFileImpl(UPath path, FileMode mode, FileAccess access,
+                                           FileShare share = FileShare.None)
     {
         if (mode != FileMode.Open)
             throw new IOException(FileSystemIsReadOnly);

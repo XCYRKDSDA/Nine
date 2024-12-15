@@ -7,8 +7,11 @@ namespace Nine.Animations;
 internal static class GenericMathHelper<ValueT>
 {
     private delegate ValueT Addition(ValueT a, ValueT b);
+
     private delegate ValueT Subtraction(ValueT a, ValueT b);
+
     private delegate ValueT Multiplication(ValueT a, float k);
+
     private delegate ValueT Division(ValueT a, float k);
 
     private static readonly Addition _additionOperator;

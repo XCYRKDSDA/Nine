@@ -19,9 +19,7 @@ public class ColorJsonConverter : JsonConverter<Color>
             R = byte.Parse(value.Substring(1, 2), NumberStyles.HexNumber),
             G = byte.Parse(value.Substring(3, 2), NumberStyles.HexNumber),
             B = byte.Parse(value.Substring(5, 2), NumberStyles.HexNumber),
-            A = value.Length > 7 ?
-                byte.Parse(value.Substring(7, 2), NumberStyles.HexNumber) :
-                (byte)255
+            A = value.Length > 7 ? byte.Parse(value.Substring(7, 2), NumberStyles.HexNumber) : (byte)255
         };
     }
 

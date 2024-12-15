@@ -37,8 +37,12 @@ public struct SizeF : IEquatable<SizeF>
 
     #region Operations
 
-    public static SizeF operator +(SizeF first, SizeF second) => new(first.Width + second.Width, first.Height + second.Height);
-    public static SizeF operator -(SizeF first, SizeF second) => new(first.Width - second.Width, first.Height - second.Height);
+    public static SizeF operator +(SizeF first, SizeF second) =>
+        new(first.Width + second.Width, first.Height + second.Height);
+
+    public static SizeF operator -(SizeF first, SizeF second) =>
+        new(first.Width - second.Width, first.Height - second.Height);
+
     public static SizeF operator *(SizeF SizeF, float k) => new(SizeF.Width * k, SizeF.Height * k);
     public static SizeF operator /(SizeF SizeF, float k) => new(SizeF.Width / k, SizeF.Height / k);
 

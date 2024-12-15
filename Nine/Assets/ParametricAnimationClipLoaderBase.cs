@@ -65,7 +65,7 @@ public abstract class ParametricAnimationClipLoaderBase<TObject> : IAssetLoader<
 
     private static readonly MethodInfo _loadCurveMethod =
         typeof(ParametricAnimationClipLoaderBase<TObject>).GetMethod("LoadCurve",
-            BindingFlags.Static | BindingFlags.NonPublic)!;
+                                                                     BindingFlags.Static | BindingFlags.NonPublic)!;
 
     public Dictionary<Type, (JsonConverter? Parser, Type CurveType)> ValueTypes { get; } = [];
 

@@ -24,7 +24,8 @@ public class TextureAtlas : IReadOnlyDictionary<string, TextureRegion>
 
     public bool ContainsKey(string key) => _regions.ContainsKey(key);
 
-    public bool TryGetValue(string key, [MaybeNullWhen(false)] out TextureRegion value) => _regions.TryGetValue(key, out value);
+    public bool TryGetValue(string key, [MaybeNullWhen(false)] out TextureRegion value) =>
+        _regions.TryGetValue(key, out value);
 
     public IEnumerator<KeyValuePair<string, TextureRegion>> GetEnumerator() => _regions.GetEnumerator();
 

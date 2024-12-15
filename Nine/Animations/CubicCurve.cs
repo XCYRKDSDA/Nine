@@ -65,7 +65,7 @@ public class CubicCurve<ValueT> : ICurve<ValueT>
             var nextKey = _keys[idx + 1];
 
             return GenericMathHelper<ValueT>.Div(GenericMathHelper<ValueT>.Sub(in nextKey.Value, in prevKey.Value),
-                nextKey.Position - prevKey.Position);
+                                                 nextKey.Position - prevKey.Position);
         }
 
         throw new InvalidEnumArgumentException();
@@ -125,9 +125,9 @@ public class CubicCurve<ValueT> : ICurve<ValueT>
             var h11 = t3 - t2;
             return GenericMathHelper<ValueT>.Add(
                 GenericMathHelper<ValueT>.Add(GenericMathHelper<ValueT>.Mul(in p0, h00),
-                    GenericMathHelper<ValueT>.Mul(in m0, h10)),
+                                              GenericMathHelper<ValueT>.Mul(in m0, h10)),
                 GenericMathHelper<ValueT>.Add(GenericMathHelper<ValueT>.Mul(in p1, h01),
-                    GenericMathHelper<ValueT>.Mul(in m1, h11))
+                                              GenericMathHelper<ValueT>.Mul(in m1, h11))
             );
         }
 

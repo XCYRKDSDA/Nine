@@ -37,8 +37,12 @@ public struct Size : IEquatable<Size>
 
     #region Operations
 
-    public static Size operator +(Size first, Size second) => new(first.Width + second.Width, first.Height + second.Height);
-    public static Size operator -(Size first, Size second) => new(first.Width - second.Width, first.Height - second.Height);
+    public static Size operator +(Size first, Size second) =>
+        new(first.Width + second.Width, first.Height + second.Height);
+
+    public static Size operator -(Size first, Size second) =>
+        new(first.Width - second.Width, first.Height - second.Height);
+
     public static Size operator *(Size size, int k) => new(size.Width * k, size.Height * k);
     public static Size operator /(Size size, int k) => new(size.Width / k, size.Height / k);
 

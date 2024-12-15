@@ -42,7 +42,8 @@ public class FadeTransition : TransitionBase
 
     private float _fadeRatio = 0;
 
-    private static readonly VertexPositionColor[] _vertices = new VertexPositionColor[] {
+    private static readonly VertexPositionColor[] _vertices = new VertexPositionColor[]
+    {
         new(new(-1, 1, 0), Color.Black),
         new(new(1, 1, 0), Color.Black),
         new(new(-1, -1, 0), Color.Black),
@@ -52,14 +53,16 @@ public class FadeTransition : TransitionBase
     private readonly GraphicsDevice _graphicsDevice;
     private readonly BasicEffect _effect;
 
-    public FadeTransition(GraphicsDevice graphicsDevice, ScreenManager screenManager, IScreen prevScreen, IScreen nextScreen)
+    public FadeTransition(GraphicsDevice graphicsDevice, ScreenManager screenManager, IScreen prevScreen,
+                          IScreen nextScreen)
         : base(screenManager, prevScreen, nextScreen)
     {
         _graphicsDevice = graphicsDevice;
         _effect = new(graphicsDevice) { VertexColorEnabled = true };
     }
 
-    public FadeTransition(GraphicsDevice graphicsDevice, ScreenManager screenManager, IScreen prevScreen, Task<IScreen> nextScreenLoader)
+    public FadeTransition(GraphicsDevice graphicsDevice, ScreenManager screenManager, IScreen prevScreen,
+                          Task<IScreen> nextScreenLoader)
         : base(screenManager, prevScreen, nextScreenLoader)
     {
         _graphicsDevice = graphicsDevice;

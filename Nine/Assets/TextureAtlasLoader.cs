@@ -33,7 +33,8 @@ public class TextureAtlasLoader : IAssetLoader<TextureAtlas>
         using var fileStream = fs.OpenFile(path, FileMode.Open, FileAccess.Read);
 
         var serializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
-        var jsonTextureAtlas = JsonSerializer.Deserialize<JsonTextureAtlas>(fileStream, serializerOptions) ?? throw new JsonException();
+        var jsonTextureAtlas = JsonSerializer.Deserialize<JsonTextureAtlas>(fileStream, serializerOptions) ??
+                               throw new JsonException();
 
         var sourceTexture = assets.Load<Texture2D>(UPath.Combine(path.GetDirectory(), jsonTextureAtlas.Image));
         var textureAtlas = new TextureAtlas(sourceTexture);

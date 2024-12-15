@@ -31,6 +31,7 @@ public static class AnimationEvaluator<ObjectT>
         if (clip2 is not null)
             t2 = WrapTime(t2, clip2);
 
-        TrackEvaluator.TweenAndSet(ref obj, clip1 is null ? [] : clip1.Tracks, t1, clip2 is null ? [] : clip2.Tracks, t2, tweener, k);
+        TrackEvaluator.TweenAndSet(ref obj, clip1 is null ? [] : clip1.Tracks, t1, clip2 is null ? [] : clip2.Tracks,
+                                   t2, tweener, k);
     }
 }

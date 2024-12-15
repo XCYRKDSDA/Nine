@@ -40,7 +40,7 @@ public abstract class AnimationClipLoaderBase<ObjectT> : IAssetLoader<AnimationC
     }
 
     private static CurveT LoadCurve<ValueT, CurveT>(JsonCurveKeyFrame[] jsonKeys, JsonConverter<ValueT>? parser)
-        where CurveT : ICurve<ValueT>, new()
+        where CurveT : ICurve<ValueT>, new() where ValueT : struct
     {
         var curve = new CurveT();
 
@@ -53,7 +53,7 @@ public abstract class AnimationClipLoaderBase<ObjectT> : IAssetLoader<AnimationC
                 jsonKey.Time,
                 jsonKey.Value.Deserialize<ValueT>(jsonSerializerOptions)!,
                 jsonKey.Type,
-                jsonKey.Gradient is null ? default : jsonKey.Gradient.Value.Deserialize<ValueT>(jsonSerializerOptions)
+                jsonKey.Gradient?.Deserialize<ValueT>(jsonSerializerOptions) ?? default
             );
             curve.Keys.Add(key);
         }

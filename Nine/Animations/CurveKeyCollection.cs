@@ -3,6 +3,7 @@ using System.Collections;
 namespace Nine.Animations;
 
 public sealed class CurveKeyCollection<TValue> : ICurveKeyCollection<TValue>
+    where TValue : struct
 {
     private readonly SortedList<float, CurveKey<TValue>> _keys = [];
 

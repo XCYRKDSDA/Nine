@@ -6,6 +6,7 @@ public readonly struct ParametricCurveKey<TValue>(
     CurveKeyType type,
     IParametric<TValue>? gradient = null)
     : IParametric<CurveKey<TValue>>, IEquatable<ParametricCurveKey<TValue>>
+    where TValue : struct
 {
     public readonly IParametric<float> Position = position;
 

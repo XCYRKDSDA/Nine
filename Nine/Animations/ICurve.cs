@@ -10,6 +10,7 @@ public interface ICurve;
 /// </summary>
 /// <typeparam name="TValue">曲线输出的值的类型</typeparam>
 public interface ICurve<TValue> : ICurve
+    where TValue : struct
 {
     ICurveKeyCollection<TValue> Keys { get; }
 

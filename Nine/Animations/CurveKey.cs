@@ -1,6 +1,7 @@
 namespace Nine.Animations;
 
 public readonly struct CurveKey<T>(float position, T value, CurveKeyType type, T? gradient = default)
+    where T : struct
 {
     public readonly float Position = position;
 

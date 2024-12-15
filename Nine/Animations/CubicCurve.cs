@@ -3,6 +3,7 @@
 namespace Nine.Animations;
 
 public class CubicCurve<ValueT> : ICurve<ValueT>
+    where ValueT : struct
 {
     private readonly CurveKeyCollection<ValueT> _keys = [];
 
@@ -56,7 +57,7 @@ public class CubicCurve<ValueT> : ICurve<ValueT>
         if (key.Type == CurveKeyType.Smooth)
         {
             if (key.Gradient is not null)
-                return key.Gradient;
+                return key.Gradient.Value;
 
             if (idx <= 0 || idx >= _keys.Count - 1)
                 return GenericMathHelper<ValueT>.Zero;

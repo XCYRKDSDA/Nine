@@ -5,7 +5,7 @@ namespace Nine.Animations;
 public static class TrackEvaluator
 {
     public static void EvaluateAndSet<ObjectT, ValueT>(ref ObjectT obj, IProperty<ObjectT, ValueT> property,
-                                                       ICurve<ValueT>? curve, float t)
+                                                       ICurve<ValueT>? curve, float t) where ValueT : struct
     {
         var value = curve == null ? property.Get(in obj) : curve.Evaluate(t);
         property.Set(ref obj, value);
@@ -13,7 +13,7 @@ public static class TrackEvaluator
 
     public static void TweenAndSet<ObjectT, ValueT>(ref ObjectT obj, IProperty<ObjectT, ValueT> property,
                                                     ICurve<ValueT>? curve1, float t1, ICurve<ValueT>? curve2, float t2,
-                                                    ICurve<float>? tweener, float k)
+                                                    ICurve<float>? tweener, float k) where ValueT : struct
     {
         // 获取两条曲线各自的输出
         var value1 = curve1 == null ? property.Get(in obj) : curve1.Evaluate(t1);
@@ -41,12 +41,12 @@ public static class TrackEvaluator
     private static readonly Dictionary<(Type, Type), (Delegate, Delegate)> _cachedMethods = new();
 
     private static void EvaluateAndSet_Wrapper<ObjectT, ValueT>(ref ObjectT obj, IProperty<ObjectT> property,
-                                                                ICurve? curve, float t)
+                                                                ICurve? curve, float t) where ValueT : struct
         => EvaluateAndSet(ref obj, (IProperty<ObjectT, ValueT>)property, (ICurve<ValueT>?)curve, t);
 
     private static void TweenAndSet_Wrapper<ObjectT, ValueT>(ref ObjectT obj, IProperty<ObjectT> property,
                                                              ICurve? curve1, float t1, ICurve? curve2, float t2,
-                                                             ICurve<float>? tweener, float k)
+                                                             ICurve<float>? tweener, float k) where ValueT : struct
         => TweenAndSet(ref obj, (IProperty<ObjectT, ValueT>)property, (ICurve<ValueT>?)curve1, t1,
                        (ICurve<ValueT>?)curve2, t2, tweener, k);
 

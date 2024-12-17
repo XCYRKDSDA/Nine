@@ -1,4 +1,4 @@
-namespace Nine.Animations;
+namespace Nine.Animations.Parametric;
 
 public class Constant<TValue>(TValue value) : IParametric<TValue>
 {

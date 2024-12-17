@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Xna.Framework;
 using Nine.Animations;
+using Nine.Animations.Parametric;
 
 namespace Nine.Assets.Serialization;
 

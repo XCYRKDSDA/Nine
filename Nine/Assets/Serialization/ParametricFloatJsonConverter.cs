@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Nine.Animations;
+using Nine.Animations.Parametric;
 
 namespace Nine.Assets.Serialization;
 

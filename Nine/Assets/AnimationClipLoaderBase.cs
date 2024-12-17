@@ -1,7 +1,7 @@
-﻿using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json;
+using Microsoft.Xna.Framework;
 using Nine.Animations;
+using Nine.Assets.Animation;
 using Nine.Assets.Serialization;
 using Zio;
 
@@ -19,61 +19,21 @@ public abstract class AnimationClipLoaderBase<ObjectT> : IAssetLoader<AnimationC
 
     #endregion
 
-    private class JsonCurveKeyFrame
-    {
-        public float Time { get; set; }
-
-        public JsonElement Value { get; set; }
-
-        public CurveKeyType Type { get; set; } = CurveKeyType.Linear;
-
-        public JsonElement? Gradient { get; set; }
-    }
-
     private class JsonAnimationClip
     {
         public float Duration { get; set; } = float.NaN;
 
         public AnimationLoopMode LoopMode { get; set; } = AnimationLoopMode.RunOnce;
 
-        public Dictionary<string, JsonCurveKeyFrame[]> Curves { get; set; } = [];
+        public Dictionary<string, JsonElement> Curves { get; set; } = [];
     }
 
-    private static CurveT LoadCurve<ValueT, CurveT>(JsonCurveKeyFrame[] jsonKeys, JsonConverter<ValueT>? parser)
-        where CurveT : ICurve<ValueT>, new() where ValueT : struct
-    {
-        var curve = new CurveT();
-
-        var jsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        if (parser is not null) jsonSerializerOptions.Converters.Add(parser);
-
-        foreach (var jsonKey in jsonKeys)
-        {
-            var key = new CurveKey<ValueT>(
-                jsonKey.Time,
-                jsonKey.Value.Deserialize<ValueT>(jsonSerializerOptions)!,
-                jsonKey.Type,
-                jsonKey.Gradient?.Deserialize<ValueT>(jsonSerializerOptions) ?? default
-            );
-            curve.Keys.Add(key);
-        }
-
-        return curve;
-    }
-
-    private static readonly MethodInfo _loadCurveMethod =
-        typeof(AnimationClipLoaderBase<ObjectT>).GetMethod("LoadCurve", BindingFlags.Static | BindingFlags.NonPublic)!;
-
-    public Dictionary<Type, (JsonConverter? Parser, Type CurveType)> ValueTypes { get; } = [];
+    public Dictionary<Type, ICurveLoader> CurveLoaders { get; set; } = [];
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
-        Converters =
-        {
-            new AnimationLoopModeJsonConverter(),
-            new JsonStringEnumConverter<CurveKeyType>()
-        }
+        Converters = { new AnimationLoopModeJsonConverter() }
     };
 
     public AnimationClip<ObjectT> Load(IFileSystem fs, IAssetsManager assets, in UPath path)
@@ -85,13 +45,12 @@ public abstract class AnimationClipLoaderBase<ObjectT> : IAssetLoader<AnimationC
 
         var clip = new AnimationClip<ObjectT> { Length = jsonClip.Duration, LoopMode = jsonClip.LoopMode };
 
-        foreach (var (propertyKey, keys) in jsonClip.Curves)
+        foreach (var (propertyKey, definition) in jsonClip.Curves)
         {
             var (property, valueType) = ParsePropertyImpl(propertyKey);
-            var (parser, curveType) = ValueTypes[valueType];
 
-            var loadCurveMethod = _loadCurveMethod.MakeGenericMethod(valueType, curveType);
-            var curve = (loadCurveMethod.Invoke(null, [keys, parser]) as ICurve)!;
+            var curveLoader = CurveLoaders[valueType];
+            var curve = curveLoader.Load(in definition);
 
             clip.Tracks.Add((property, valueType), curve);
         }

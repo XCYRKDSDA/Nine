@@ -1,7 +1,7 @@
-﻿using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json;
 using Nine.Animations;
+using Nine.Animations.Parametric;
+using Nine.Assets.Animation;
 using Nine.Assets.Serialization;
 using Zio;
 
@@ -19,17 +19,6 @@ public abstract class ParametricAnimationClipLoaderBase<TObject> : IAssetLoader<
 
     #endregion
 
-    private class JsonCurveKeyFrame
-    {
-        public IParametric<float> Time { get; set; }
-
-        public JsonElement Value { get; set; }
-
-        public CurveKeyType Type { get; set; } = CurveKeyType.Linear;
-
-        public JsonElement? Gradient { get; set; }
-    }
-
     private class JsonAnimationClip
     {
         public Dictionary<string, IParametric<float>> Variables { get; set; } = [];
@@ -38,36 +27,10 @@ public abstract class ParametricAnimationClipLoaderBase<TObject> : IAssetLoader<
 
         public AnimationLoopMode LoopMode { get; set; } = AnimationLoopMode.RunOnce;
 
-        public Dictionary<string, JsonCurveKeyFrame[]> Curves { get; set; } = [];
+        public Dictionary<string, JsonElement> Curves { get; set; } = [];
     }
 
-    private static IParametric<TCurve> LoadCurve<TValue, TCurve>(
-        JsonCurveKeyFrame[] jsonKeys, JsonConverter<IParametric<TValue>>? parser)
-        where TCurve : ICurve<TValue>, new() where TValue : struct, IEquatable<TValue>
-    {
-        var curve = new ParametricCurve<TCurve, TValue>();
-
-        var jsonSerializerOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        if (parser is not null) jsonSerializerOptions.Converters.Add(parser);
-
-        foreach (var jsonKey in jsonKeys)
-        {
-            var key = new ParametricCurveKey<TValue>(
-                jsonKey.Time,
-                jsonKey.Value.Deserialize<IParametric<TValue>>(jsonSerializerOptions)!,
-                jsonKey.Type,
-                jsonKey.Gradient?.Deserialize<IParametric<TValue>>(jsonSerializerOptions));
-            curve.Keys.Add(key);
-        }
-
-        return curve;
-    }
-
-    private static readonly MethodInfo _loadCurveMethod =
-        typeof(ParametricAnimationClipLoaderBase<TObject>).GetMethod("LoadCurve",
-                                                                     BindingFlags.Static | BindingFlags.NonPublic)!;
-
-    public Dictionary<Type, (JsonConverter? Parser, Type CurveType)> ValueTypes { get; } = [];
+    public Dictionary<Type, IParametricCurveLoader> CurveLoaders { get; } = [];
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -75,8 +38,7 @@ public abstract class ParametricAnimationClipLoaderBase<TObject> : IAssetLoader<
         Converters =
         {
             new AnimationLoopModeJsonConverter(),
-            new ParametricFloatJsonConverter(),
-            new JsonStringEnumConverter<CurveKeyType>()
+            new ParametricFloatJsonConverter()
         }
     };
 
@@ -89,15 +51,14 @@ public abstract class ParametricAnimationClipLoaderBase<TObject> : IAssetLoader<
 
         var clip = new ParametricAnimationClip<TObject> { Length = jsonClip.Duration, LoopMode = jsonClip.LoopMode };
 
-        foreach (var (propertyKey, keys) in jsonClip.Curves)
+        foreach (var (propertyKey, definition) in jsonClip.Curves)
         {
             var (property, valueType) = ParsePropertyImpl(propertyKey);
-            var (parser, curveType) = ValueTypes[valueType];
 
-            var loadCurveMethod = _loadCurveMethod.MakeGenericMethod(valueType, curveType);
-            var parametricCurve = (loadCurveMethod.Invoke(null, [keys, parser]) as IParametric<ICurve>)!;
+            var curveLoader = CurveLoaders[valueType];
+            var curve = curveLoader.Load(in definition);
 
-            clip.Tracks.Add((property, valueType), parametricCurve);
+            clip.Tracks.Add((property, valueType), curve);
         }
 
         foreach (var (variableName, defaultValue) in jsonClip.Variables)

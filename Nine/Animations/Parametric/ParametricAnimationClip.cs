@@ -1,4 +1,4 @@
-namespace Nine.Animations;
+namespace Nine.Animations.Parametric;
 
 public class ParametricAnimationClip<TObject> : IParametric<AnimationClip<TObject>>
 {
@@ -23,7 +23,7 @@ public class ParametricAnimationClip<TObject> : IParametric<AnimationClip<TObjec
     public AnimationLoopMode LoopMode { get; set; } = AnimationLoopMode.RunOnce;
 
     /// <summary>
-    /// 根据指定参数烘焙非参数化的确定动画 
+    /// 根据指定参数烘焙非参数化的确定动画
     /// </summary>
     /// <param name="parameters"></param>
     /// <returns></returns>

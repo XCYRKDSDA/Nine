@@ -1,4 +1,4 @@
-namespace Nine.Animations;
+namespace Nine.Animations.Parametric;
 
 public class ParametricTrackCollection<TObject>
     : Dictionary<(IProperty<TObject>, Type), IParametric<ICurve>>, IParametric<TrackCollection<TObject>>

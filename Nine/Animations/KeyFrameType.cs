@@ -1,6 +1,6 @@
 namespace Nine.Animations;
 
-public enum CurveKeyType
+public enum KeyFrameType
 {
     Step,
     Linear,

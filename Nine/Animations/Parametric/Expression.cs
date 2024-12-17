@@ -1,6 +1,6 @@
 using NCalc;
 
-namespace Nine.Animations;
+namespace Nine.Animations.Parametric;
 
 public class Expression<TValue>(string expression) : IParametric<TValue>
 {

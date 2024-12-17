@@ -1,4 +1,4 @@
-namespace Nine.Animations;
+namespace Nine.Animations.Parametric;
 
 public interface IParametric<out T>
 {

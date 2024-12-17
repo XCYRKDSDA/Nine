@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace Nine.Animations;
+namespace Nine.Animations.Parametric;
 
 public sealed class ParametricVector2(IParametric<float> x, IParametric<float> y)
     : IParametric<Vector2>

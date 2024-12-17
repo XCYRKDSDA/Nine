@@ -24,3 +24,10 @@ public class Vector3CubicKeyFrameCurveLoader(
         valueConverter, gradientConverter ?? valueConverter
     )
 { }
+
+public class SphereKeyFrameCurveLoader(
+    JsonConverter<Quaternion>? valueConverter, JsonConverter<Vector3>? gradientConverter)
+    : KeyFrameCurveLoader<Quaternion, Vector3, SphereKeyFrameCurve>(
+        valueConverter, gradientConverter
+    )
+{ }

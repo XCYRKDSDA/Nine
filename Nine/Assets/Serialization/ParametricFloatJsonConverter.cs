@@ -12,7 +12,7 @@ public class ParametricFloatJsonConverter : JsonConverter<IParametric<float>>
         => reader.TokenType switch
         {
             JsonTokenType.Number => new Constant<float>(reader.GetSingle()),
-            JsonTokenType.String => new Expression<float>(reader.GetString() ?? throw new JsonException()),
+            JsonTokenType.String => new Expression(reader.GetString() ?? throw new JsonException()),
             _ => throw new JsonException()
         };
 

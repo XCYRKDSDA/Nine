@@ -40,6 +40,9 @@ public abstract class KeyFrameCurve<TValue, TGradient> : ICurve<TValue>
     {
         var key = KeyFrames[idx];
 
+        if (key.Gradient is not null)
+            return key.Gradient.Value;
+
         if (key.FrameType == KeyFrameType.Step)
             return GenericMathHelper<TGradient>.Zero;
 
@@ -55,9 +58,6 @@ public abstract class KeyFrameCurve<TValue, TGradient> : ICurve<TValue>
 
         if (key.FrameType == KeyFrameType.Smooth)
         {
-            if (key.Gradient is not null)
-                return key.Gradient.Value;
-
             var prevKey = idx == 0 ? key : KeyFrames[idx - 1];
             var nextKey = idx == KeyFrames.Count - 1 ? key : KeyFrames[idx + 1];
 

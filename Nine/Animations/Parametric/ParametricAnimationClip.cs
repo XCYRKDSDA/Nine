@@ -1,6 +1,6 @@
 namespace Nine.Animations.Parametric;
 
-public class ParametricAnimationClip<TObject> : IParametric<AnimationClip<TObject>>
+public class ParametricAnimationClip<TObject> : IParametric<AnimationClip<TObject>>, ICloneable
 {
     /// <summary>
     /// 默认参数。当烘焙时默认采用该字典中指定的参数
@@ -47,4 +47,15 @@ public class ParametricAnimationClip<TObject> : IParametric<AnimationClip<TObjec
             LoopMode = LoopMode
         };
     }
+
+    public ParametricAnimationClip<TObject> Clone()
+        => new()
+        {
+            Parameters = new(Parameters),
+            Tracks = Tracks,
+            Length = Length,
+            LoopMode = LoopMode
+        };
+
+    object ICloneable.Clone() => Clone();
 }

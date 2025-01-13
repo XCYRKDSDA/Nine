@@ -38,13 +38,14 @@ public class TextureAtlas : IReadOnlyDictionary<string, TextureRegion>
         _texture = texture;
     }
 
-    public void Add(string key, Rectangle region)
+    public void Add(string key, Rectangle region, Vector2? anchor = null, Vector2? size = null)
     {
-        _regions[key] = new(_texture, region);
+        _regions[key] = new(_texture, region, anchor, size);
     }
 
-    public void Add(string key, Rectangle region, NinePatchPadding padding)
+    public void Add(string key, Rectangle region, NinePatchPadding padding,
+                    Vector2? anchor = null, Vector2? size = null)
     {
-        _regions[key] = new NinePatchRegion(_texture, padding, region);
+        _regions[key] = new NinePatchRegion(_texture, padding, region, anchor, size);
     }
 }

@@ -24,8 +24,9 @@ public readonly struct NinePatchPadding
     }
 }
 
-public class NinePatchRegion(Texture2D texture, NinePatchPadding padding, Rectangle? region = null)
-    : TextureRegion(texture, region)
+public class NinePatchRegion(Texture2D texture, NinePatchPadding padding, Rectangle? region = null,
+                             Vector2? logicalOrigin = null, Vector2? size = null)
+    : TextureRegion(texture, region, logicalOrigin, size)
 {
     public NinePatchPadding Padding { get; } = padding;
 }

@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Nine.Assets.Serialization;
 using Nine.Graphics;
 using Zio;
 
@@ -25,7 +26,11 @@ public class TextureAtlasLoader : IAssetLoader<TextureAtlas>
 
         public int H { get; set; }
 
-        public int[]? Padding { get; set; }
+        public Vector2? Anchor { get; set; }
+
+        public Vector2? Size { get; set; }
+
+        public NinePatchPadding? Padding { get; set; }
     }
 
     public TextureAtlas Load(IFileSystem fs, IAssetsManager assets, in UPath path)
@@ -33,6 +38,8 @@ public class TextureAtlasLoader : IAssetLoader<TextureAtlas>
         using var fileStream = fs.OpenFile(path, FileMode.Open, FileAccess.Read);
 
         var serializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+        serializerOptions.Converters.Add(new Vector2JsonConverter());
+        serializerOptions.Converters.Add(new NinePatchPaddingJsonConverter());
         var jsonTextureAtlas = JsonSerializer.Deserialize<JsonTextureAtlas>(fileStream, serializerOptions) ??
                                throw new JsonException();
 
@@ -42,20 +49,10 @@ public class TextureAtlasLoader : IAssetLoader<TextureAtlas>
         foreach (var (key, jsonSubTexture) in jsonTextureAtlas.Regions)
         {
             var sourceRegion = new Rectangle(jsonSubTexture.X, jsonSubTexture.Y, jsonSubTexture.W, jsonSubTexture.H);
-            if (jsonSubTexture.Padding is null)
-                textureAtlas.Add(key, sourceRegion);
+            if (jsonSubTexture.Padding is { } padding)
+                textureAtlas.Add(key, sourceRegion, padding, jsonSubTexture.Anchor, jsonSubTexture.Size);
             else
-            {
-                var padding = jsonSubTexture.Padding.Length switch
-                {
-                    1 => new NinePatchPadding(jsonSubTexture.Padding[0]),
-                    2 => new NinePatchPadding(jsonSubTexture.Padding[0], jsonSubTexture.Padding[1]),
-                    4 => new NinePatchPadding(jsonSubTexture.Padding[0], jsonSubTexture.Padding[1],
-                                              jsonSubTexture.Padding[2], jsonSubTexture.Padding[3]),
-                    _ => throw new NotImplementedException()
-                };
-                textureAtlas.Add(key, sourceRegion, padding);
-            }
+                textureAtlas.Add(key, sourceRegion, jsonSubTexture.Anchor, jsonSubTexture.Size);
         }
 
         return textureAtlas;

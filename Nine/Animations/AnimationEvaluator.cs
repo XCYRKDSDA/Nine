@@ -1,4 +1,4 @@
-﻿namespace Nine.Animations;
+namespace Nine.Animations;
 
 public static class AnimationEvaluator<ObjectT>
 {

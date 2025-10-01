@@ -1,4 +1,4 @@
-﻿namespace Nine.Animations;
+namespace Nine.Animations;
 
 public class AnimationClip<ObjectT>
 {

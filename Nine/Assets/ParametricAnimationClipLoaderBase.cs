@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Nine.Animations;
 using Nine.Animations.Parametric;
 using Nine.Assets.Animation;

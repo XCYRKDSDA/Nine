@@ -1,4 +1,4 @@
-﻿namespace Nine.Animations;
+namespace Nine.Animations;
 
 /// <summary>
 /// 不含值的类型信息的曲线接口

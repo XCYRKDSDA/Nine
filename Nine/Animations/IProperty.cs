@@ -1,4 +1,4 @@
-﻿namespace Nine.Animations;
+namespace Nine.Animations;
 
 /// <summary>
 /// 不含属性的类型信息的属性接口

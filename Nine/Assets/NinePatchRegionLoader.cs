@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using Nine.Graphics;
 using Zio;
 

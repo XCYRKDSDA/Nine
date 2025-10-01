@@ -1,4 +1,4 @@
-﻿using Zio;
+using Zio;
 
 namespace Nine.Assets;
 

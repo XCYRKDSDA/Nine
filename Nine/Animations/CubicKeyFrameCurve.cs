@@ -1,4 +1,4 @@
-﻿namespace Nine.Animations;
+namespace Nine.Animations;
 
 public class CubicKeyFrameCurve<TValue> : KeyFrameCurve<TValue, TValue>
     where TValue : struct

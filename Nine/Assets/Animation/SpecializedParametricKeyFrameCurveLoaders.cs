@@ -26,6 +26,13 @@ public class ParametricVector3CubicKeyFrameCurveLoader(
     )
 { }
 
+public class ParametricIntegerCubicKeyFrameCurveLoader(
+    JsonConverter<IParametric<int>>? valueConverter, JsonConverter<IParametric<float>>? gradientConverter)
+    : ParametricKeyFrameCurveLoader<int, float, IntegerCubicKeyFrameCurve>(
+        valueConverter, gradientConverter
+    )
+{ }
+
 public class ParametricSphereKeyFrameCurveLoader(
     JsonConverter<IParametric<Quaternion>>? valueConverter, JsonConverter<IParametric<Vector3>>? gradientConverter)
     : ParametricKeyFrameCurveLoader<Quaternion, Vector3, SphereKeyFrameCurve>(

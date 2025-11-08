@@ -23,6 +23,9 @@ public class CustomTransition(
         var progress = (float)(_duration / duration);
         prevScreen.OnTransitOut(progress);
         nextScreen.OnTransitIn(progress);
+
+        if (_duration >= duration)
+            ScreenManager.ActiveScreen = nextScreen;
     }
 
     public override void Draw(GameTime gameTime)

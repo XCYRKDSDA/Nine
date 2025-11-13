@@ -17,4 +17,16 @@ public interface IScreen
     void Update(GameTime gameTime);
 
     void Draw(GameTime gameTime);
+
+    #region Transition
+
+    void OnStartTransitIn();
+
+    void OnTransitIn(float progress);
+
+    void OnStartTransitOut();
+
+    void OnTransitOut(float progress);
+
+    #endregion
 }

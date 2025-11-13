@@ -49,4 +49,11 @@ public abstract class TransitionBase : ScreenBase
             return _nextScreen;
         }
     }
+
+    public override void OnActivated()
+    {
+        base.OnActivated();
+        PrevScreen.OnStartTransitOut();
+        NextScreen?.OnStartTransitIn();
+    }
 }

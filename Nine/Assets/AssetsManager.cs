@@ -2,16 +2,22 @@ using Zio;
 
 namespace Nine.Assets;
 
-public class AssetsManager : IAssetsManager
+public class AssetsManager(IFileSystem assetsFileSystem, bool inheritDefaultLoaders = true) : IAssetsManager
 {
-    private readonly IFileSystem _assetsFileSystem;
+    private static readonly Dictionary<Type, object> _defaultAssetLoaders = [];
+
+    public static void RegisterDefaultLoader(Type type, object loader)
+    {
+        _defaultAssetLoaders.Add(type, loader);
+    }
+
+    public static void RegisterDefaultLoader<T>(IAssetLoader<T> loader)
+    {
+        _defaultAssetLoaders.Add(typeof(T), loader);
+    }
+
     private readonly Dictionary<Type, object> _assetLoaders = new();
     private readonly Dictionary<Type, Dictionary<UPath, object>> _assetsCache = new();
-
-    public AssetsManager(IFileSystem assetsFileSystem)
-    {
-        _assetsFileSystem = assetsFileSystem;
-    }
 
     public void RegisterLoader<T>(IAssetLoader<T> loader)
     {
@@ -31,8 +37,12 @@ public class AssetsManager : IAssetsManager
         if (typeSpecifiedCache.TryGetValue(absPath, out var cached))
             return (T)cached;
 
-        var loader = _assetLoaders[typeof(T)] as IAssetLoader<T> ?? throw new NullReferenceException();
-        var asset = loader.Load(_assetsFileSystem, this, absPath) ?? throw new NullReferenceException();
+        var loader = _assetLoaders.TryGetValue(typeof(T), out var localLoader)
+                         ? (IAssetLoader<T>)localLoader
+                         : inheritDefaultLoaders && _defaultAssetLoaders.TryGetValue(typeof(T), out var defaultLoader)
+                             ? (IAssetLoader<T>)defaultLoader
+                             : throw new NullReferenceException();
+        var asset = loader.Load(assetsFileSystem, this, absPath) ?? throw new NullReferenceException();
 
         if (cache)
             typeSpecifiedCache.Add(absPath, asset);

@@ -6,27 +6,32 @@ namespace Nine.Screens.Transitions;
 public abstract class TransitionBase : ScreenBase
 {
     protected TransitionBase(ScreenManager screenManager,
-                             IScreen prevScreen, IScreen nextScreen)
+                             IScreen prevScreen, IScreen nextScreen,
+                             object? context = null)
         : base(screenManager)
     {
         PrevScreen = prevScreen;
 
+        _context = context;
         _nextScreenLoader = null;
         _nextScreen = nextScreen;
     }
 
     protected TransitionBase(ScreenManager screenManager,
-                             IScreen prevScreen, Task<IScreen> nextScreenLoader)
+                             IScreen prevScreen, Task<IScreen> nextScreenLoader,
+                             object? context = null)
         : base(screenManager)
     {
         PrevScreen = prevScreen;
 
+        _context = context;
         _nextScreenLoader = nextScreenLoader;
         _nextScreen = null;
     }
 
     public IScreen PrevScreen { get; }
 
+    private object? _context;
     private Task<IScreen>? _nextScreenLoader;
     private IScreen? _nextScreen;
 
@@ -53,7 +58,7 @@ public abstract class TransitionBase : ScreenBase
     public override void OnActivated()
     {
         base.OnActivated();
-        PrevScreen.OnStartTransitOut();
-        NextScreen?.OnStartTransitIn();
+        PrevScreen.OnStartTransitOut(_context);
+        NextScreen?.OnStartTransitIn(_context);
     }
 }

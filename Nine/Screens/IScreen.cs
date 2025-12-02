@@ -20,13 +20,13 @@ public interface IScreen
 
     #region Transition
 
-    void OnStartTransitIn();
+    void OnStartTransitIn(object? context);
 
-    void OnTransitIn(float progress);
+    void OnTransitIn(object? context, float progress);
 
-    void OnStartTransitOut();
+    void OnStartTransitOut(object? context);
 
-    void OnTransitOut(float progress);
+    void OnTransitOut(object? context, float progress);
 
     #endregion
 }

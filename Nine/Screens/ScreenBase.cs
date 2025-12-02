@@ -19,23 +19,23 @@ public abstract class ScreenBase : IScreen
 
     public virtual TransitionState TransitionState { get; set; }
 
-    protected virtual void OnStartTransitIn() { }
+    protected virtual void OnStartTransitIn(object? context) { }
 
-    void IScreen.OnStartTransitIn()
+    void IScreen.OnStartTransitIn(object? context)
     {
         TransitionState = TransitionState.TransitingIn;
-        OnStartTransitIn();
+        OnStartTransitIn(context);
     }
 
-    public virtual void OnTransitIn(float progress) { }
+    public virtual void OnTransitIn(object? context, float progress) { }
 
-    protected virtual void OnStartTransitOut() { }
+    protected virtual void OnStartTransitOut(object? context) { }
 
-    void IScreen.OnStartTransitOut()
+    void IScreen.OnStartTransitOut(object? context)
     {
         TransitionState = TransitionState.TransitingOut;
-        OnStartTransitOut();
+        OnStartTransitOut(context);
     }
 
-    public virtual void OnTransitOut(float progress) { }
+    public virtual void OnTransitOut(object? context, float progress) { }
 }

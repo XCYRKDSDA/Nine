@@ -5,7 +5,7 @@ namespace Nine.Screens.Transitions;
 
 public class CustomFadeInTransition(
     GraphicsDevice graphicsDevice, ScreenManager screenManager, IScreen prevScreen, IScreen nextScreen,
-    TimeSpan duration)
+    TimeSpan duration, object? context = null)
     : TransitionBase(screenManager, prevScreen, nextScreen)
 {
     private readonly RenderTarget2D _prevRenderTarget = new(
@@ -28,8 +28,8 @@ public class CustomFadeInTransition(
     {
         _duration += gameTime.ElapsedGameTime;
         var progress = (float)(_duration / duration);
-        prevScreen.OnTransitOut(progress);
-        nextScreen.OnTransitIn(progress);
+        prevScreen.OnTransitOut(context, progress);
+        nextScreen.OnTransitIn(context, progress);
 
         if (_duration >= duration)
             ScreenManager.ActiveScreen = nextScreen;

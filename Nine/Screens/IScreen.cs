@@ -24,9 +24,13 @@ public interface IScreen
 
     void OnTransitIn(object? context, float progress);
 
+    void OnFinishTransitIn(object? context);
+
     void OnStartTransitOut(object? context);
 
     void OnTransitOut(object? context, float progress);
+
+    void OnFinishTransitOut(object? context);
 
     #endregion
 }

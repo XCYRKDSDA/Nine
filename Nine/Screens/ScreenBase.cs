@@ -27,7 +27,16 @@ public abstract class ScreenBase : IScreen
         OnStartTransitIn(context);
     }
 
+    protected virtual void OnFinishTransitIn(object? context) { }
+
+    void IScreen.OnFinishTransitIn(object? context)
+    {
+        TransitionState = TransitionState.None;
+        OnFinishTransitIn(context);
+    }
+
     public virtual void OnTransitIn(object? context, float progress) { }
+
 
     protected virtual void OnStartTransitOut(object? context) { }
 
@@ -35,6 +44,14 @@ public abstract class ScreenBase : IScreen
     {
         TransitionState = TransitionState.TransitingOut;
         OnStartTransitOut(context);
+    }
+
+    protected virtual void OnFinishTransitOut(object? context) { }
+
+    void IScreen.OnFinishTransitOut(object? context)
+    {
+        TransitionState = TransitionState.None;
+        OnFinishTransitOut(context);
     }
 
     public virtual void OnTransitOut(object? context, float progress) { }

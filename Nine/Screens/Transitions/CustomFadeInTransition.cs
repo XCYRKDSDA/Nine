@@ -30,11 +30,10 @@ public class CustomFadeInTransition(
     {
         _duration += gameTime.ElapsedGameTime;
         var progress = (float)(_duration / duration);
-        prevScreen.OnTransitOut(context, progress);
-        nextScreen.OnTransitIn(context, progress);
+        base.UpdateTransition(progress);
 
         if (_duration >= duration)
-            ScreenManager.ActiveScreen = nextScreen;
+            ScreenManager.ActiveScreen = NextScreen;
     }
 
     public override void Draw(GameTime gameTime)
@@ -43,11 +42,11 @@ public class CustomFadeInTransition(
 
         graphicsDevice.SetRenderTarget(_prevRenderTarget);
         graphicsDevice.Clear(Color.Black);
-        prevScreen.Draw(gameTime);
+        PrevScreen.Draw(gameTime);
 
         graphicsDevice.SetRenderTarget(_nextRenderTarget);
         graphicsDevice.Clear(Color.Transparent);
-        nextScreen.Draw(gameTime);
+        NextScreen.Draw(gameTime);
 
         graphicsDevice.SetRenderTargets(renderTargetsCache);
 

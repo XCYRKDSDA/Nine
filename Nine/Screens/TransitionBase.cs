@@ -1,3 +1,5 @@
+using Microsoft.Xna.Framework;
+
 namespace Nine.Screens;
 
 /// <summary>
@@ -23,6 +25,12 @@ public abstract class TransitionBase(
         base.OnDeactivated();
         prevScreen.OnFinishTransitOut(context);
         nextScreen.OnFinishTransitIn(context);
+    }
+
+    public override void Update(GameTime gameTime)
+    {
+        prevScreen.Update(gameTime);
+        nextScreen.Update(gameTime);
     }
 
     protected void UpdateTransition(float progress)

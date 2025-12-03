@@ -28,6 +28,8 @@ public class CustomFadeInTransition(
 
     public override void Update(GameTime gameTime)
     {
+        base.Update(gameTime);
+
         _duration += gameTime.ElapsedGameTime;
         var progress = (float)(_duration / duration);
         base.UpdateTransition(progress);

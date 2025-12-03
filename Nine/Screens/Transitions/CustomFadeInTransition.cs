@@ -6,16 +6,18 @@ namespace Nine.Screens.Transitions;
 public class CustomFadeInTransition(
     GraphicsDevice graphicsDevice, ScreenManager screenManager, IScreen prevScreen, IScreen nextScreen,
     TimeSpan duration, object? context = null)
-    : TransitionBase(screenManager, prevScreen, nextScreen)
+    : TransitionBase(screenManager, prevScreen, nextScreen, context)
 {
     private readonly RenderTarget2D _prevRenderTarget = new(
         graphicsDevice, graphicsDevice.PresentationParameters.BackBufferWidth,
-        graphicsDevice.PresentationParameters.BackBufferHeight
+        graphicsDevice.PresentationParameters.BackBufferHeight,
+        false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents
     );
 
     private readonly RenderTarget2D _nextRenderTarget = new(
         graphicsDevice, graphicsDevice.PresentationParameters.BackBufferWidth,
-        graphicsDevice.PresentationParameters.BackBufferHeight
+        graphicsDevice.PresentationParameters.BackBufferHeight,
+        false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents
     );
 
     private readonly SpriteBatch _spriteBatch = new(graphicsDevice, 1);
@@ -40,7 +42,7 @@ public class CustomFadeInTransition(
         var renderTargetsCache = graphicsDevice.GetRenderTargets();
 
         graphicsDevice.SetRenderTarget(_prevRenderTarget);
-        graphicsDevice.Clear(Color.Transparent);
+        graphicsDevice.Clear(Color.Black);
         prevScreen.Draw(gameTime);
 
         graphicsDevice.SetRenderTarget(_nextRenderTarget);

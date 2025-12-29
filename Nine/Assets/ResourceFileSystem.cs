@@ -7,19 +7,14 @@ namespace Nine.Assets;
 public class ResourceFileSystem : ReadOnlyFileSystem
 {
     public Assembly Assembly { get; }
-    public string Namesapce { get; }
 
-    private readonly string _prefix;
-
-    public ResourceFileSystem(Assembly assembly, string @namespace) : base(new MemoryFileSystem(), false)
+    public ResourceFileSystem(Assembly assembly) : base(new MemoryFileSystem())
     {
         Assembly = assembly;
-        Namesapce = @namespace;
-        _prefix = $"{assembly.GetName().Name}.{@namespace}";
 
         foreach (var asset in Assembly.GetManifestResourceNames())
         {
-            var path = new UPath(asset[_prefix.Length..].Replace('.', '/'));
+            var path = new UPath(asset).ToAbsolute();
             var directory = path.GetDirectory();
             FallbackSafe.CreateDirectory(directory);
             FallbackSafe.CreateFile(path).Dispose();
@@ -34,7 +29,6 @@ public class ResourceFileSystem : ReadOnlyFileSystem
         if ((access & FileAccess.Write) != 0)
             throw new IOException(FileSystemIsReadOnly);
 
-        var res = ((string)path).Replace('/', '.').Insert(0, _prefix);
-        return Assembly.GetManifestResourceStream(res)!;
+        return Assembly.GetManifestResourceStream(path.ToRelative().FullName)!;
     }
 }

@@ -9,9 +9,11 @@ public interface IParametricCurveLoader
     IParametric<ICurve> Load(in JsonElement jsonElement);
 }
 
-public interface IParametricCurveLoader<TValue> : IParametricCurveLoader where TValue : struct
+public interface IParametricCurveLoader<TValue> : IParametricCurveLoader
+    where TValue : struct
 {
     new IParametric<ICurve<TValue>> Load(in JsonElement jsonElement);
 
-    IParametric<ICurve> IParametricCurveLoader.Load(in JsonElement jsonElement) => Load(in jsonElement);
+    IParametric<ICurve> IParametricCurveLoader.Load(in JsonElement jsonElement) =>
+        Load(in jsonElement);
 }

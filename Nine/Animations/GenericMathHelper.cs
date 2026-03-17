@@ -32,8 +32,12 @@ internal static class GenericMathHelper<ValueT>
         var expr_multiplication = Expression.Multiply(expr_a, expr_k);
         var expr_division = Expression.Divide(expr_a, expr_k);
         _additionOperator = Expression.Lambda<Addition>(expr_addition, expr_a, expr_b).Compile();
-        _subtractionOperator = Expression.Lambda<Subtraction>(expr_subtraction, expr_a, expr_b).Compile();
-        _multiplicationOperator = Expression.Lambda<Multiplication>(expr_multiplication, expr_a, expr_k).Compile();
+        _subtractionOperator = Expression
+            .Lambda<Subtraction>(expr_subtraction, expr_a, expr_b)
+            .Compile();
+        _multiplicationOperator = Expression
+            .Lambda<Multiplication>(expr_multiplication, expr_a, expr_k)
+            .Compile();
         _divisionOperator = Expression.Lambda<Division>(expr_division, expr_a, expr_k).Compile();
 
         if (valueType.IsPrimitive)

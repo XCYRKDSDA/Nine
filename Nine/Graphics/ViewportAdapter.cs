@@ -5,8 +5,12 @@ namespace Nine.Graphics;
 
 public static class ViewportAdapter
 {
-    public static Viewport Adapt(in Point expectSize, in Viewport viewport,
-                                 float maxScale = float.PositiveInfinity, float minScale = 0)
+    public static Viewport Adapt(
+        in Point expectSize,
+        in Viewport viewport,
+        float maxScale = float.PositiveInfinity,
+        float minScale = 0
+    )
     {
         var scaleX = viewport.Width / expectSize.X;
         var scaleY = viewport.Height / expectSize.Y;
@@ -19,6 +23,11 @@ public static class ViewportAdapter
         var actualWidth = (int)(expectSize.X * scale);
         var actualHeight = (int)(expectSize.Y * scale);
 
-        return new((viewport.Width - actualWidth) / 2, (viewport.Height - actualHeight) / 2, actualWidth, actualHeight);
+        return new(
+            (viewport.Width - actualWidth) / 2,
+            (viewport.Height - actualHeight) / 2,
+            actualWidth,
+            actualHeight
+        );
     }
 }

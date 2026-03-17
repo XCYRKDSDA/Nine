@@ -24,7 +24,11 @@ public class FmodBankLoader(FMOD.Studio.System fmodSystem) : IAssetLoader<Bank>
         if (fs.FileExists(stringsBankPath))
         {
             var stringsBankBytes = fs.ReadAllBytes(stringsBankPath);
-            _fmodFlag = _fmodSystem.loadBankMemory(stringsBankBytes, LOAD_BANK_FLAGS.NORMAL, out var stringsBank);
+            _fmodFlag = _fmodSystem.loadBankMemory(
+                stringsBankBytes,
+                LOAD_BANK_FLAGS.NORMAL,
+                out var stringsBank
+            );
             if (_fmodFlag != RESULT.OK && _fmodFlag != RESULT.ERR_EVENT_ALREADY_LOADED)
                 throw new Exception($"Failed to load bank {stringsBankPath}");
             _fmodFlag = stringsBank.loadSampleData();

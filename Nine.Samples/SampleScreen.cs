@@ -10,8 +10,12 @@ namespace Nine.Samples;
 
 internal abstract class SampleScreen : ScreenBase
 {
-    public SampleScreen(Game game, ScreenManager screenManager,
-                        Texture2D background, Func<IScreen> nextScreenBuilder)
+    public SampleScreen(
+        Game game,
+        ScreenManager screenManager,
+        Texture2D background,
+        Func<IScreen> nextScreenBuilder
+    )
         : base(game, screenManager)
     {
         _spriteBatch = new(game.GraphicsDevice, 1);
@@ -29,7 +33,11 @@ internal abstract class SampleScreen : ScreenBase
         var keyboardState = Keyboard.GetState();
         if (keyboardState.IsKeyDown(Keys.Space))
             ScreenManager.ActiveScreen = new FadeTransition(
-                Game, ScreenManager, ScreenManager.ActiveScreen, Task.Run(_nextScreenConstructor));
+                Game,
+                ScreenManager,
+                ScreenManager.ActiveScreen,
+                Task.Run(_nextScreenConstructor)
+            );
     }
 
     public sealed override void Draw(GameTime gameTime)
@@ -43,27 +51,43 @@ internal abstract class SampleScreen : ScreenBase
 internal class SampleScreen1 : SampleScreen
 {
     public SampleScreen1(Game game, ScreenManager screenManager)
-        : base(game, screenManager, game.Content.Load<Texture2D>("bars"), () => new SampleScreen2(game, screenManager))
-    { }
+        : base(
+            game,
+            screenManager,
+            game.Content.Load<Texture2D>("bars"),
+            () => new SampleScreen2(game, screenManager)
+        ) { }
 }
 
 internal class SampleScreen2 : SampleScreen
 {
     public SampleScreen2(Game game, ScreenManager screenManager)
-        : base(game, screenManager, game.Content.Load<Texture2D>("circles"), () => new SampleScreen3(game, screenManager))
-    { }
+        : base(
+            game,
+            screenManager,
+            game.Content.Load<Texture2D>("circles"),
+            () => new SampleScreen3(game, screenManager)
+        ) { }
 }
 
 internal class SampleScreen3 : SampleScreen
 {
     public SampleScreen3(Game game, ScreenManager screenManager)
-        : base(game, screenManager, game.Content.Load<Texture2D>("polygons"), () => new SampleScreen4(game, screenManager))
-    { }
+        : base(
+            game,
+            screenManager,
+            game.Content.Load<Texture2D>("polygons"),
+            () => new SampleScreen4(game, screenManager)
+        ) { }
 }
 
 internal class SampleScreen4 : SampleScreen
 {
     public SampleScreen4(Game game, ScreenManager screenManager)
-        : base(game, screenManager, game.Content.Load<Texture2D>("triangles"), () => new SampleScreen1(game, screenManager))
-    { }
+        : base(
+            game,
+            screenManager,
+            game.Content.Load<Texture2D>("triangles"),
+            () => new SampleScreen1(game, screenManager)
+        ) { }
 }

@@ -5,36 +5,46 @@ using Nine.Animations;
 namespace Nine.Assets.Animation;
 
 public class SingleCubicKeyFrameCurveLoader(
-    JsonConverter<float>? valueConverter, JsonConverter<float>? gradientConverter = null)
+    JsonConverter<float>? valueConverter,
+    JsonConverter<float>? gradientConverter = null
+)
     : KeyFrameCurveLoader<float, float, SingleCubicKeyFrameCurve>(
-        valueConverter, gradientConverter ?? valueConverter
-    )
-{ }
+        valueConverter,
+        gradientConverter ?? valueConverter
+    ) { }
 
 public class Vector2CubicKeyFrameCurveLoader(
-    JsonConverter<Vector2>? valueConverter, JsonConverter<Vector2>? gradientConverter = null)
+    JsonConverter<Vector2>? valueConverter,
+    JsonConverter<Vector2>? gradientConverter = null
+)
     : KeyFrameCurveLoader<Vector2, Vector2, Vector2CubicKeyFrameCurve>(
-        valueConverter, gradientConverter ?? valueConverter
-    )
-{ }
+        valueConverter,
+        gradientConverter ?? valueConverter
+    ) { }
 
 public class Vector3CubicKeyFrameCurveLoader(
-    JsonConverter<Vector3>? valueConverter, JsonConverter<Vector3>? gradientConverter = null)
+    JsonConverter<Vector3>? valueConverter,
+    JsonConverter<Vector3>? gradientConverter = null
+)
     : KeyFrameCurveLoader<Vector3, Vector3, Vector3CubicKeyFrameCurve>(
-        valueConverter, gradientConverter ?? valueConverter
-    )
-{ }
+        valueConverter,
+        gradientConverter ?? valueConverter
+    ) { }
 
 public class IntegerCubicKeyFrameCurveLoader(
-    JsonConverter<int>? valueConverter, JsonConverter<float>? gradientConverter)
+    JsonConverter<int>? valueConverter,
+    JsonConverter<float>? gradientConverter
+)
     : KeyFrameCurveLoader<int, float, IntegerCubicKeyFrameCurve>(
-        valueConverter, gradientConverter
-    )
-{ }
+        valueConverter,
+        gradientConverter
+    ) { }
 
 public class SphereKeyFrameCurveLoader(
-    JsonConverter<Quaternion>? valueConverter, JsonConverter<Vector3>? gradientConverter)
+    JsonConverter<Quaternion>? valueConverter,
+    JsonConverter<Vector3>? gradientConverter
+)
     : KeyFrameCurveLoader<Quaternion, Vector3, SphereKeyFrameCurve>(
-        valueConverter, gradientConverter
-    )
-{ }
+        valueConverter,
+        gradientConverter
+    ) { }

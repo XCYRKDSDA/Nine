@@ -5,9 +5,15 @@ namespace Nine.Graphics;
 
 public readonly struct NinePatchPadding
 {
-    public readonly int Left, Right, Top, Bottom;
+    public readonly int Left,
+        Right,
+        Top,
+        Bottom;
 
-    public NinePatchPadding(int padding) { Left = Right = Top = Bottom = padding; }
+    public NinePatchPadding(int padding)
+    {
+        Left = Right = Top = Bottom = padding;
+    }
 
     public NinePatchPadding(int horizontal, int vertical)
     {
@@ -24,9 +30,13 @@ public readonly struct NinePatchPadding
     }
 }
 
-public class NinePatchRegion(Texture2D texture, NinePatchPadding padding, Rectangle? region = null,
-                             Vector2? logicalOrigin = null, Vector2? size = null)
-    : TextureRegion(texture, region, logicalOrigin, size)
+public class NinePatchRegion(
+    Texture2D texture,
+    NinePatchPadding padding,
+    Rectangle? region = null,
+    Vector2? logicalOrigin = null,
+    Vector2? size = null
+) : TextureRegion(texture, region, logicalOrigin, size)
 {
     public NinePatchPadding Padding { get; } = padding;
 }

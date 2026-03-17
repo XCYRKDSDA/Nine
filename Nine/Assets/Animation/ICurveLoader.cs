@@ -8,7 +8,8 @@ public interface ICurveLoader
     ICurve Load(in JsonElement jsonElement);
 }
 
-public interface ICurveLoader<TValue> : ICurveLoader where TValue : struct
+public interface ICurveLoader<TValue> : ICurveLoader
+    where TValue : struct
 {
     new ICurve<TValue> Load(in JsonElement jsonElement);
 

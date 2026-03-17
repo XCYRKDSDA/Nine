@@ -6,8 +6,11 @@ namespace Nine.Assets.Serialization;
 
 public class BlendStateJsonConverter : JsonConverter<BlendState>
 {
-    public override BlendState? Read(ref Utf8JsonReader reader, Type typeToConvert,
-                                     JsonSerializerOptions options)
+    public override BlendState? Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options
+    )
     {
         var value = reader.GetString();
         if (string.IsNullOrEmpty(value))
@@ -19,12 +22,15 @@ public class BlendStateJsonConverter : JsonConverter<BlendState>
             "Additive" => BlendState.Additive,
             "NonPremultiplied" => BlendState.NonPremultiplied,
             "Opaque" => BlendState.Opaque,
-            _ => throw new KeyNotFoundException()
+            _ => throw new KeyNotFoundException(),
         };
     }
 
-    public override void Write(Utf8JsonWriter writer, BlendState value,
-                               JsonSerializerOptions options)
+    public override void Write(
+        Utf8JsonWriter writer,
+        BlendState value,
+        JsonSerializerOptions options
+    )
     {
         throw new NotImplementedException();
     }

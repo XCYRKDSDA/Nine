@@ -2,7 +2,8 @@ using Zio;
 
 namespace Nine.Assets;
 
-public class AssetsManager(IFileSystem assetsFileSystem, bool inheritDefaultLoaders = true) : IAssetsManager
+public class AssetsManager(IFileSystem assetsFileSystem, bool inheritDefaultLoaders = true)
+    : IAssetsManager
 {
     private static readonly Dictionary<Type, object> _defaultAssetLoaders = [];
 
@@ -37,12 +38,14 @@ public class AssetsManager(IFileSystem assetsFileSystem, bool inheritDefaultLoad
         if (typeSpecifiedCache.TryGetValue(absPath, out var cached))
             return (T)cached;
 
-        var loader = _assetLoaders.TryGetValue(typeof(T), out var localLoader)
-                         ? (IAssetLoader<T>)localLoader
-                         : inheritDefaultLoaders && _defaultAssetLoaders.TryGetValue(typeof(T), out var defaultLoader)
-                             ? (IAssetLoader<T>)defaultLoader
-                             : throw new NullReferenceException();
-        var asset = loader.Load(assetsFileSystem, this, absPath) ?? throw new NullReferenceException();
+        var loader =
+            _assetLoaders.TryGetValue(typeof(T), out var localLoader) ? (IAssetLoader<T>)localLoader
+            : inheritDefaultLoaders
+            && _defaultAssetLoaders.TryGetValue(typeof(T), out var defaultLoader)
+                ? (IAssetLoader<T>)defaultLoader
+            : throw new NullReferenceException();
+        var asset =
+            loader.Load(assetsFileSystem, this, absPath) ?? throw new NullReferenceException();
 
         if (cache)
             typeSpecifiedCache.Add(absPath, asset);

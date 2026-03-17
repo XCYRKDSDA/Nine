@@ -12,9 +12,11 @@ public class FmodEventLoader(FMOD.Studio.System fmodSystem) : IAssetLoader<Event
 
     public EventDescription Load(IFileSystem fs, IAssetsManager assets, in UPath path)
     {
-        if (!path.FullName.Contains(':')) throw new Exception("Invalid path");
+        if (!path.FullName.Contains(':'))
+            throw new Exception("Invalid path");
         var parts = path.FullName.Split(':');
-        if (parts.Length != 2) throw new Exception("Invalid path");
+        if (parts.Length != 2)
+            throw new Exception("Invalid path");
 
         var bankPath = parts[0];
         var directory = path.GetDirectory();

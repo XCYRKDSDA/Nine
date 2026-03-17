@@ -6,8 +6,11 @@ namespace Nine.Assets.Serialization;
 
 public class NinePatchPaddingJsonConverter : JsonConverter<NinePatchPadding>
 {
-    public override NinePatchPadding Read(ref Utf8JsonReader reader, Type typeToConvert,
-                                          JsonSerializerOptions options)
+    public override NinePatchPadding Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options
+    )
     {
         if (reader.TokenType != JsonTokenType.StartArray)
             throw new JsonException();
@@ -29,11 +32,13 @@ public class NinePatchPaddingJsonConverter : JsonConverter<NinePatchPadding>
             1 => new NinePatchPadding(paddings[0]),
             2 => new NinePatchPadding(paddings[0], paddings[1]),
             4 => new NinePatchPadding(paddings[0], paddings[1], paddings[2], paddings[3]),
-            _ => throw new NotImplementedException()
+            _ => throw new NotImplementedException(),
         };
     }
 
-    public override void Write(Utf8JsonWriter writer, NinePatchPadding value,
-                               JsonSerializerOptions options)
-        => throw new NotImplementedException();
+    public override void Write(
+        Utf8JsonWriter writer,
+        NinePatchPadding value,
+        JsonSerializerOptions options
+    ) => throw new NotImplementedException();
 }

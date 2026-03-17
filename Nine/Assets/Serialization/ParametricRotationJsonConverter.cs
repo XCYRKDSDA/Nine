@@ -10,8 +10,11 @@ public class ParametricRotationJsonConverter : JsonConverter<IParametric<Quatern
 {
     private readonly ParametricFloatJsonConverter _floatJsonConverter = new();
 
-    public override IParametric<Quaternion>? Read(ref Utf8JsonReader reader, Type typeToConvert,
-                                                  JsonSerializerOptions options)
+    public override IParametric<Quaternion>? Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options
+    )
     {
         if (reader.TokenType != JsonTokenType.StartArray)
             throw new JsonException();
@@ -29,18 +32,26 @@ public class ParametricRotationJsonConverter : JsonConverter<IParametric<Quatern
             for (int i = 0; i < 3; i++)
             {
                 reader.Read();
-                angles[i] = _floatJsonConverter.Read(ref reader, typeToConvert, options) ?? throw new JsonException();
+                angles[i] =
+                    _floatJsonConverter.Read(ref reader, typeToConvert, options)
+                    ?? throw new JsonException();
             }
             rot = new ParametricEuler(order, angles);
 
             goto DONE;
         }
 
-        var x = _floatJsonConverter.Read(ref reader, typeToConvert, options) ?? throw new JsonException();
+        var x =
+            _floatJsonConverter.Read(ref reader, typeToConvert, options)
+            ?? throw new JsonException();
         reader.Read();
-        var y = _floatJsonConverter.Read(ref reader, typeToConvert, options) ?? throw new JsonException();
+        var y =
+            _floatJsonConverter.Read(ref reader, typeToConvert, options)
+            ?? throw new JsonException();
         reader.Read();
-        var z = _floatJsonConverter.Read(ref reader, typeToConvert, options) ?? throw new JsonException();
+        var z =
+            _floatJsonConverter.Read(ref reader, typeToConvert, options)
+            ?? throw new JsonException();
 
         reader.Read();
         if (reader.TokenType == JsonTokenType.EndArray)
@@ -49,7 +60,9 @@ public class ParametricRotationJsonConverter : JsonConverter<IParametric<Quatern
             goto DONE;
         }
 
-        var w = _floatJsonConverter.Read(ref reader, typeToConvert, options) ?? throw new JsonException();
+        var w =
+            _floatJsonConverter.Read(ref reader, typeToConvert, options)
+            ?? throw new JsonException();
         rot = new ParametricQuaternion(x, y, z, w);
 
         DONE:
@@ -61,7 +74,9 @@ public class ParametricRotationJsonConverter : JsonConverter<IParametric<Quatern
         return rot;
     }
 
-    public override void Write(Utf8JsonWriter writer, IParametric<Quaternion> value,
-                               JsonSerializerOptions options)
-        => throw new NotImplementedException();
+    public override void Write(
+        Utf8JsonWriter writer,
+        IParametric<Quaternion> value,
+        JsonSerializerOptions options
+    ) => throw new NotImplementedException();
 }

@@ -10,16 +10,23 @@ public sealed class ParametricVector2JsonConverter : JsonConverter<IParametric<V
 {
     private readonly ParametricFloatJsonConverter _floatJsonConverter = new();
 
-    public override IParametric<Vector2>? Read(ref Utf8JsonReader reader, Type typeToConvert,
-                                               JsonSerializerOptions options)
+    public override IParametric<Vector2>? Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options
+    )
     {
         if (reader.TokenType != JsonTokenType.StartArray)
             throw new JsonException();
         reader.Read();
 
         // 将数组前两个值记录为x和y
-        var x = _floatJsonConverter.Read(ref reader, typeToConvert, options) ?? throw new JsonException();
-        var y = _floatJsonConverter.Read(ref reader, typeToConvert, options) ?? throw new JsonException();
+        var x =
+            _floatJsonConverter.Read(ref reader, typeToConvert, options)
+            ?? throw new JsonException();
+        var y =
+            _floatJsonConverter.Read(ref reader, typeToConvert, options)
+            ?? throw new JsonException();
 
         // 丢弃多余的数组成员
         while (reader.TokenType != JsonTokenType.EndArray)
@@ -28,7 +35,11 @@ public sealed class ParametricVector2JsonConverter : JsonConverter<IParametric<V
         return new ParametricVector2(x, y);
     }
 
-    public override void Write(Utf8JsonWriter writer, IParametric<Vector2> value, JsonSerializerOptions options)
+    public override void Write(
+        Utf8JsonWriter writer,
+        IParametric<Vector2> value,
+        JsonSerializerOptions options
+    )
     {
         throw new NotImplementedException();
     }

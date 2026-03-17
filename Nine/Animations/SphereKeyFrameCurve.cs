@@ -31,18 +31,26 @@ public class SphereKeyFrameCurve : KeyFrameCurve<Quaternion, Vector3>
         var dr = Quaternion.Divide(q1, q0).ToAxisAngle();
         var r = h1 * dr + h2 * w0 + h3 * w1;
 
-        var result = Quaternion.Multiply(Quaternion.CreateFromAxisAngle(Vector3.Normalize(r), r.Length()), q0);
+        var result = Quaternion.Multiply(
+            Quaternion.CreateFromAxisAngle(Vector3.Normalize(r), r.Length()),
+            q0
+        );
         return result;
     }
 
-    protected override Vector3 Difference(in Quaternion p0, in Quaternion p1)
-        => Quaternion.Divide(p1, p0).ToAxisAngle();
+    protected override Vector3 Difference(in Quaternion p0, in Quaternion p1) =>
+        Quaternion.Divide(p1, p0).ToAxisAngle();
 
-    protected override Quaternion LinearInterpolate(in Quaternion p0, in Quaternion p1, float k)
-        => Quaternion.Slerp(p0, p1, k);
+    protected override Quaternion LinearInterpolate(in Quaternion p0, in Quaternion p1, float k) =>
+        Quaternion.Slerp(p0, p1, k);
 
-    protected override Quaternion SmoothInterpolate(in Quaternion p0, in Vector3 m0, in Quaternion p1, in Vector3 m1,
-                                                    float x)
+    protected override Quaternion SmoothInterpolate(
+        in Quaternion p0,
+        in Vector3 m0,
+        in Quaternion p1,
+        in Vector3 m1,
+        float x
+    )
     {
         var x2 = x * x;
         var x3 = x2 * x;
@@ -54,7 +62,10 @@ public class SphereKeyFrameCurve : KeyFrameCurve<Quaternion, Vector3>
         var dr = Quaternion.Divide(p1, p0).ToAxisAngle();
         var r = h1 * dr + h2 * m0 + h3 * m1;
 
-        var result = Quaternion.Multiply(Quaternion.CreateFromAxisAngle(Vector3.Normalize(r), r.Length()), p0);
+        var result = Quaternion.Multiply(
+            Quaternion.CreateFromAxisAngle(Vector3.Normalize(r), r.Length()),
+            p0
+        );
         return result;
     }
 }

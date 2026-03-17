@@ -40,17 +40,31 @@ public class TextureAtlasLoader : IAssetLoader<TextureAtlas>
         var serializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
         serializerOptions.Converters.Add(new Vector2JsonConverter());
         serializerOptions.Converters.Add(new NinePatchPaddingJsonConverter());
-        var jsonTextureAtlas = JsonSerializer.Deserialize<JsonTextureAtlas>(fileStream, serializerOptions) ??
-                               throw new JsonException();
+        var jsonTextureAtlas =
+            JsonSerializer.Deserialize<JsonTextureAtlas>(fileStream, serializerOptions)
+            ?? throw new JsonException();
 
-        var sourceTexture = assets.Load<Texture2D>(UPath.Combine(path.GetDirectory(), jsonTextureAtlas.Image));
+        var sourceTexture = assets.Load<Texture2D>(
+            UPath.Combine(path.GetDirectory(), jsonTextureAtlas.Image)
+        );
         var textureAtlas = new TextureAtlas(sourceTexture);
 
         foreach (var (key, jsonSubTexture) in jsonTextureAtlas.Regions)
         {
-            var sourceRegion = new Rectangle(jsonSubTexture.X, jsonSubTexture.Y, jsonSubTexture.W, jsonSubTexture.H);
+            var sourceRegion = new Rectangle(
+                jsonSubTexture.X,
+                jsonSubTexture.Y,
+                jsonSubTexture.W,
+                jsonSubTexture.H
+            );
             if (jsonSubTexture.Padding is { } padding)
-                textureAtlas.Add(key, sourceRegion, padding, jsonSubTexture.Anchor, jsonSubTexture.Size);
+                textureAtlas.Add(
+                    key,
+                    sourceRegion,
+                    padding,
+                    jsonSubTexture.Anchor,
+                    jsonSubTexture.Size
+                );
             else
                 textureAtlas.Add(key, sourceRegion, jsonSubTexture.Anchor, jsonSubTexture.Size);
         }

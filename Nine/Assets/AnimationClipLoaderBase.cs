@@ -33,17 +33,22 @@ public abstract class AnimationClipLoaderBase<ObjectT> : IAssetLoader<AnimationC
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
-        Converters = { new AnimationLoopModeJsonConverter() }
+        Converters = { new AnimationLoopModeJsonConverter() },
     };
 
     public AnimationClip<ObjectT> Load(IFileSystem fs, IAssetsManager assets, in UPath path)
     {
         using var stream = fs.OpenFile(path, FileMode.Open, FileAccess.Read);
 
-        var jsonClip = JsonSerializer.Deserialize<JsonAnimationClip>(stream, _jsonSerializerOptions) ??
-                       throw new JsonException();
+        var jsonClip =
+            JsonSerializer.Deserialize<JsonAnimationClip>(stream, _jsonSerializerOptions)
+            ?? throw new JsonException();
 
-        var clip = new AnimationClip<ObjectT> { Length = jsonClip.Duration, LoopMode = jsonClip.LoopMode };
+        var clip = new AnimationClip<ObjectT>
+        {
+            Length = jsonClip.Duration,
+            LoopMode = jsonClip.LoopMode,
+        };
 
         foreach (var (propertyKey, definition) in jsonClip.Curves)
         {

@@ -44,17 +44,17 @@ public class ParametricAnimationClip<TObject> : IParametric<AnimationClip<TObjec
         {
             Tracks = Tracks.Bake(aggregatedParameters),
             Length = Length.Bake(aggregatedParameters),
-            LoopMode = LoopMode
+            LoopMode = LoopMode,
         };
     }
 
-    public ParametricAnimationClip<TObject> Clone()
-        => new()
+    public ParametricAnimationClip<TObject> Clone() =>
+        new()
         {
             Parameters = new(Parameters),
             Tracks = Tracks,
             Length = Length,
-            LoopMode = LoopMode
+            LoopMode = LoopMode,
         };
 
     object ICloneable.Clone() => Clone();

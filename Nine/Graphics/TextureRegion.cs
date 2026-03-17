@@ -25,8 +25,12 @@ public class TextureRegion
     /// </summary>
     public Vector2 LogicalSize { get; }
 
-    public TextureRegion(Texture2D texture, Rectangle? region = null,
-                         Vector2? logicalOrigin = null, Vector2? logicalSize = null)
+    public TextureRegion(
+        Texture2D texture,
+        Rectangle? region = null,
+        Vector2? logicalOrigin = null,
+        Vector2? logicalSize = null
+    )
     {
         Texture = texture;
         Bounds = region ?? texture.Bounds;

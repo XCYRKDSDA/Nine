@@ -6,8 +6,11 @@ namespace Nine.Assets.Serialization;
 
 public class RotationJsonConverter : JsonConverter<Quaternion>
 {
-    public override Quaternion Read(ref Utf8JsonReader reader, Type typeToConvert,
-                                    JsonSerializerOptions options)
+    public override Quaternion Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options
+    )
     {
         if (reader.TokenType != JsonTokenType.StartArray)
             throw new JsonException();
@@ -27,14 +30,16 @@ public class RotationJsonConverter : JsonConverter<Quaternion>
                 var angle = reader.GetSingle();
                 var axis = order[i];
                 rot = Quaternion.Multiply(
-                    rot, Quaternion.CreateFromAxisAngle(
+                    rot,
+                    Quaternion.CreateFromAxisAngle(
                         axis switch
                         {
                             'x' => Vector3.UnitX,
                             'y' => Vector3.UnitY,
                             'z' => Vector3.UnitZ,
-                            _ => throw new ArgumentOutOfRangeException()
-                        }, angle
+                            _ => throw new ArgumentOutOfRangeException(),
+                        },
+                        angle
                     )
                 );
             }
@@ -68,7 +73,9 @@ public class RotationJsonConverter : JsonConverter<Quaternion>
         return rot;
     }
 
-    public override void Write(Utf8JsonWriter writer, Quaternion value,
-                               JsonSerializerOptions options)
-        => throw new NotImplementedException();
+    public override void Write(
+        Utf8JsonWriter writer,
+        Quaternion value,
+        JsonSerializerOptions options
+    ) => throw new NotImplementedException();
 }

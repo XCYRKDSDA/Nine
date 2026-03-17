@@ -6,8 +6,11 @@ namespace Nine.Assets.Serialization;
 
 public class AnimationLoopModeJsonConverter : JsonConverter<AnimationLoopMode>
 {
-    public override AnimationLoopMode Read(ref Utf8JsonReader reader, Type typeToConvert,
-                                           JsonSerializerOptions options)
+    public override AnimationLoopMode Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options
+    )
     {
         var value = reader.GetString();
         if (string.IsNullOrEmpty(value))
@@ -17,12 +20,15 @@ public class AnimationLoopModeJsonConverter : JsonConverter<AnimationLoopMode>
         {
             "OneShot" => AnimationLoopMode.RunOnce,
             "Loop" => AnimationLoopMode.LoopForever,
-            _ => throw new KeyNotFoundException()
+            _ => throw new KeyNotFoundException(),
         };
     }
 
-    public override void Write(Utf8JsonWriter writer, AnimationLoopMode value,
-                               JsonSerializerOptions options)
+    public override void Write(
+        Utf8JsonWriter writer,
+        AnimationLoopMode value,
+        JsonSerializerOptions options
+    )
     {
         throw new NotImplementedException();
     }

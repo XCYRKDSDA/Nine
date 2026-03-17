@@ -3,7 +3,8 @@ using System.ComponentModel;
 namespace Nine.Animations;
 
 public abstract class KeyFrameCurve<TValue, TGradient> : ICurve<TValue>
-    where TValue : struct where TGradient : struct
+    where TValue : struct
+    where TGradient : struct
 // TGradient must be located in a linear space
 {
     public KeyFrameCollection<TValue, TGradient> KeyFrames { get; } = [];
@@ -15,7 +16,8 @@ public abstract class KeyFrameCurve<TValue, TGradient> : ICurve<TValue>
         if (position > KeyFrames[^1].Position)
             return (KeyFrames.Count - 1, -1);
 
-        int l = 0, r = KeyFrames.Count - 1;
+        int l = 0,
+            r = KeyFrames.Count - 1;
         while (true)
         {
             if (r == l + 1)
@@ -34,7 +36,13 @@ public abstract class KeyFrameCurve<TValue, TGradient> : ICurve<TValue>
 
     protected abstract TGradient Difference(in TValue p0, in TValue p1);
     protected abstract TValue LinearInterpolate(in TValue p0, in TValue p1, float k);
-    protected abstract TValue SmoothInterpolate(in TValue p0, in TGradient m0, in TValue p1, in TGradient m1, float t);
+    protected abstract TValue SmoothInterpolate(
+        in TValue p0,
+        in TGradient m0,
+        in TValue p1,
+        in TGradient m1,
+        float t
+    );
 
     private TGradient GetGradient(int idx)
     {
@@ -52,8 +60,10 @@ public abstract class KeyFrameCurve<TValue, TGradient> : ICurve<TValue>
                 return GenericMathHelper<TGradient>.Zero;
 
             var nextKey = KeyFrames[idx + 1];
-            return GenericMathHelper<TGradient>.Div(Difference(in key.Value, in nextKey.Value),
-                                                    nextKey.Position - key.Position);
+            return GenericMathHelper<TGradient>.Div(
+                Difference(in key.Value, in nextKey.Value),
+                nextKey.Position - key.Position
+            );
         }
 
         if (key.FrameType == KeyFrameType.Smooth)
@@ -61,8 +71,10 @@ public abstract class KeyFrameCurve<TValue, TGradient> : ICurve<TValue>
             var prevKey = idx == 0 ? key : KeyFrames[idx - 1];
             var nextKey = idx == KeyFrames.Count - 1 ? key : KeyFrames[idx + 1];
 
-            return GenericMathHelper<TGradient>.Div(Difference(in prevKey.Value, in nextKey.Value),
-                                                    nextKey.Position - prevKey.Position);
+            return GenericMathHelper<TGradient>.Div(
+                Difference(in prevKey.Value, in nextKey.Value),
+                nextKey.Position - prevKey.Position
+            );
         }
 
         throw new InvalidEnumArgumentException();

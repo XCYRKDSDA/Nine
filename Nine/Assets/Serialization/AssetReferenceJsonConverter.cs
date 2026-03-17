@@ -4,7 +4,8 @@ using Zio;
 
 namespace Nine.Assets.Serialization;
 
-public class AssetReferenceJsonConverter<T> : JsonConverter<T> where T : class
+public class AssetReferenceJsonConverter<T> : JsonConverter<T>
+    where T : class
 {
     private readonly IAssetsManager _assets;
     private readonly UPath _directory;
@@ -15,8 +16,11 @@ public class AssetReferenceJsonConverter<T> : JsonConverter<T> where T : class
         _directory = directory;
     }
 
-    public override T? Read(ref Utf8JsonReader reader, Type typeToConvert,
-                            JsonSerializerOptions options)
+    public override T? Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options
+    )
     {
         var path = reader.GetString();
 

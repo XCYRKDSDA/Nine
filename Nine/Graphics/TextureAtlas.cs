@@ -27,7 +27,8 @@ public class TextureAtlas : IReadOnlyDictionary<string, TextureRegion>
     public bool TryGetValue(string key, [MaybeNullWhen(false)] out TextureRegion value) =>
         _regions.TryGetValue(key, out value);
 
-    public IEnumerator<KeyValuePair<string, TextureRegion>> GetEnumerator() => _regions.GetEnumerator();
+    public IEnumerator<KeyValuePair<string, TextureRegion>> GetEnumerator() =>
+        _regions.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => _regions.GetEnumerator();
 
@@ -43,8 +44,13 @@ public class TextureAtlas : IReadOnlyDictionary<string, TextureRegion>
         _regions[key] = new(_texture, region, anchor, size);
     }
 
-    public void Add(string key, Rectangle region, NinePatchPadding padding,
-                    Vector2? anchor = null, Vector2? size = null)
+    public void Add(
+        string key,
+        Rectangle region,
+        NinePatchPadding padding,
+        Vector2? anchor = null,
+        Vector2? size = null
+    )
     {
         _regions[key] = new NinePatchRegion(_texture, padding, region, anchor, size);
     }

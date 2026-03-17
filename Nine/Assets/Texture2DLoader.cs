@@ -16,6 +16,10 @@ public class Texture2DLoader : IAssetLoader<Texture2D>
     {
         using var fileStream = fs.OpenFile(path, FileMode.Open, FileAccess.Read);
 
-        return Texture2D.FromStream(GraphicsDevice, fileStream, DefaultColorProcessors.PremultiplyAlpha);
+        return Texture2D.FromStream(
+            GraphicsDevice,
+            fileStream,
+            DefaultColorProcessors.PremultiplyAlpha
+        );
     }
 }

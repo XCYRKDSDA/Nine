@@ -7,8 +7,8 @@ namespace Nine.Screens;
 /// </summary>
 public class ScreenManager : DrawableGameComponent
 {
-    public ScreenManager(Game game) : base(game)
-    { }
+    public ScreenManager(Game game)
+        : base(game) { }
 
     private IScreen? _activeScreen;
     private IScreen? _nextActiveScreen;

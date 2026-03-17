@@ -6,8 +6,11 @@ namespace Nine.Assets.Serialization;
 
 public class Vector2JsonConverter : JsonConverter<Vector2>
 {
-    public override Vector2 Read(ref Utf8JsonReader reader, Type typeToConvert,
-                                 JsonSerializerOptions options)
+    public override Vector2 Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options
+    )
     {
         if (reader.TokenType != JsonTokenType.StartArray)
             throw new JsonException();
@@ -26,8 +29,7 @@ public class Vector2JsonConverter : JsonConverter<Vector2>
         return new(x, y);
     }
 
-    public override void Write(Utf8JsonWriter writer, Vector2 value,
-                               JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, Vector2 value, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }

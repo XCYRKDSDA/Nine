@@ -12,6 +12,7 @@ public abstract class ScreenBase : IScreen
     public ScreenManager ScreenManager { get; private set; }
 
     public virtual void OnActivated() { }
+
     public virtual void OnDeactivated() { }
 
     public abstract void Update(GameTime gameTime);
@@ -36,7 +37,6 @@ public abstract class ScreenBase : IScreen
     }
 
     public virtual void OnTransitIn(object? context, float progress) { }
-
 
     protected virtual void OnStartTransitOut(object? context) { }
 

@@ -3,7 +3,8 @@ using System.Collections;
 namespace Nine.Animations;
 
 public sealed class KeyFrameCollection<TValue, TGradient> : IKeyFrameCollection<TValue, TGradient>
-    where TValue : struct where TGradient : struct
+    where TValue : struct
+    where TGradient : struct
 {
     private readonly SortedList<float, KeyFrame<TValue, TGradient>> _keys = [];
 
@@ -19,7 +20,8 @@ public sealed class KeyFrameCollection<TValue, TGradient> : IKeyFrameCollection<
 
     public bool Contains(KeyFrame<TValue, TGradient> item) => _keys.ContainsKey(item.Position);
 
-    public void CopyTo(KeyFrame<TValue, TGradient>[] array, int arrayIndex) => _keys.Values.CopyTo(array, arrayIndex);
+    public void CopyTo(KeyFrame<TValue, TGradient>[] array, int arrayIndex) =>
+        _keys.Values.CopyTo(array, arrayIndex);
 
     public IEnumerator<KeyFrame<TValue, TGradient>> GetEnumerator() => _keys.Values.GetEnumerator();
 

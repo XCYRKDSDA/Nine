@@ -6,8 +6,11 @@ namespace Nine.Assets.Serialization;
 
 public class RectangleJsonConverter : JsonConverter<Rectangle>
 {
-    public override Rectangle Read(ref Utf8JsonReader reader, Type typeToConvert,
-                                   JsonSerializerOptions options)
+    public override Rectangle Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options
+    )
     {
         if (reader.TokenType != JsonTokenType.StartObject)
             throw new JsonException();
@@ -42,8 +45,11 @@ public class RectangleJsonConverter : JsonConverter<Rectangle>
         throw new JsonException();
     }
 
-    public override void Write(Utf8JsonWriter writer, Rectangle value,
-                               JsonSerializerOptions options)
+    public override void Write(
+        Utf8JsonWriter writer,
+        Rectangle value,
+        JsonSerializerOptions options
+    )
     {
         throw new NotImplementedException();
     }

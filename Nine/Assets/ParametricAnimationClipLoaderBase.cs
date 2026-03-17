@@ -7,7 +7,8 @@ using Zio;
 
 namespace Nine.Assets;
 
-public abstract class ParametricAnimationClipLoaderBase<TObject> : IAssetLoader<ParametricAnimationClip<TObject>>
+public abstract class ParametricAnimationClipLoaderBase<TObject>
+    : IAssetLoader<ParametricAnimationClip<TObject>>
 {
     #region IProperty Builder
 
@@ -35,21 +36,26 @@ public abstract class ParametricAnimationClipLoaderBase<TObject> : IAssetLoader<
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
-        Converters =
-        {
-            new AnimationLoopModeJsonConverter(),
-            new ParametricFloatJsonConverter()
-        }
+        Converters = { new AnimationLoopModeJsonConverter(), new ParametricFloatJsonConverter() },
     };
 
-    public ParametricAnimationClip<TObject> Load(IFileSystem fs, IAssetsManager assets, in UPath path)
+    public ParametricAnimationClip<TObject> Load(
+        IFileSystem fs,
+        IAssetsManager assets,
+        in UPath path
+    )
     {
         using var stream = fs.OpenFile(path, FileMode.Open, FileAccess.Read);
 
-        var jsonClip = JsonSerializer.Deserialize<JsonAnimationClip>(stream, _jsonSerializerOptions) ??
-                       throw new JsonException();
+        var jsonClip =
+            JsonSerializer.Deserialize<JsonAnimationClip>(stream, _jsonSerializerOptions)
+            ?? throw new JsonException();
 
-        var clip = new ParametricAnimationClip<TObject> { Length = jsonClip.Duration, LoopMode = jsonClip.LoopMode };
+        var clip = new ParametricAnimationClip<TObject>
+        {
+            Length = jsonClip.Duration,
+            LoopMode = jsonClip.LoopMode,
+        };
 
         foreach (var (propertyKey, definition) in jsonClip.Curves)
         {

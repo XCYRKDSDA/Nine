@@ -4,9 +4,16 @@ public class IntegerCubicKeyFrameCurve : KeyFrameCurve<int, float>
 {
     protected override float Difference(in int p0, in int p1) => p1 - p0;
 
-    protected override int LinearInterpolate(in int p0, in int p1, float k) => (int)(p0 * (1 - k) + p1 * k);
+    protected override int LinearInterpolate(in int p0, in int p1, float k) =>
+        (int)(p0 * (1 - k) + p1 * k);
 
-    protected override int SmoothInterpolate(in int p0, in float m0, in int p1, in float m1, float t)
+    protected override int SmoothInterpolate(
+        in int p0,
+        in float m0,
+        in int p1,
+        in float m1,
+        float t
+    )
     {
         // 计算结果
         var t2 = t * t;

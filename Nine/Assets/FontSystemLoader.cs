@@ -11,7 +11,9 @@ public class FontSystemLoader : IAssetLoader<FontSystem>
 
         var directory = path.GetDirectory();
         foreach (var file in path.GetName().Split(':'))
-            fontSystem.AddFont(fs.OpenFile(UPath.Combine(directory, file), FileMode.Open, FileAccess.Read));
+            fontSystem.AddFont(
+                fs.OpenFile(UPath.Combine(directory, file), FileMode.Open, FileAccess.Read)
+            );
 
         return fontSystem;
     }

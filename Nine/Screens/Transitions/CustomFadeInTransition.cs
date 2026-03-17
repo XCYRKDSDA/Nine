@@ -4,20 +4,34 @@ using Microsoft.Xna.Framework.Graphics;
 namespace Nine.Screens.Transitions;
 
 public class CustomFadeInTransition(
-    GraphicsDevice graphicsDevice, ScreenManager screenManager, IScreen prevScreen, IScreen nextScreen,
-    TimeSpan duration, object? context = null)
-    : TransitionBase(screenManager, prevScreen, nextScreen, context)
+    GraphicsDevice graphicsDevice,
+    ScreenManager screenManager,
+    IScreen prevScreen,
+    IScreen nextScreen,
+    TimeSpan duration,
+    object? context = null
+) : TransitionBase(screenManager, prevScreen, nextScreen, context)
 {
     private readonly RenderTarget2D _prevRenderTarget = new(
-        graphicsDevice, graphicsDevice.PresentationParameters.BackBufferWidth,
+        graphicsDevice,
+        graphicsDevice.PresentationParameters.BackBufferWidth,
         graphicsDevice.PresentationParameters.BackBufferHeight,
-        false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents
+        false,
+        SurfaceFormat.Color,
+        DepthFormat.None,
+        0,
+        RenderTargetUsage.PreserveContents
     );
 
     private readonly RenderTarget2D _nextRenderTarget = new(
-        graphicsDevice, graphicsDevice.PresentationParameters.BackBufferWidth,
+        graphicsDevice,
+        graphicsDevice.PresentationParameters.BackBufferWidth,
         graphicsDevice.PresentationParameters.BackBufferHeight,
-        false, SurfaceFormat.Color, DepthFormat.None, 0, RenderTargetUsage.PreserveContents
+        false,
+        SurfaceFormat.Color,
+        DepthFormat.None,
+        0,
+        RenderTargetUsage.PreserveContents
     );
 
     private readonly SpriteBatch _spriteBatch = new(graphicsDevice, 1);

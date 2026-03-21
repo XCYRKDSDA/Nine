@@ -17,20 +17,6 @@ public interface IScreen
     void Update(GameTime gameTime);
 
     void Draw(GameTime gameTime);
-
-    #region Transition
-
-    void OnStartTransitIn(object? context);
-
-    void OnTransitIn(object? context, float progress);
-
-    void OnFinishTransitIn(object? context);
-
-    void OnStartTransitOut(object? context);
-
-    void OnTransitOut(object? context, float progress);
-
-    void OnFinishTransitOut(object? context);
-
-    #endregion
 }
+
+public interface IConfigurableScreen<TState> : IScreen, IConfigurable<TState> { }

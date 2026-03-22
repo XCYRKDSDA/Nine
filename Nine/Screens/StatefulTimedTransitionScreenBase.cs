@@ -7,11 +7,10 @@ using Nine.Screens;
 /// <typeparam name="TState"><inheritdoc cref="StatefulTransitionScreenBase{TState}"/></typeparam>
 public abstract class StatefulTimedTransitionScreenBase<TState>(
     ScreenManager screenManager,
-    IConfigurableScreen<TState> prevScreen,
-    IConfigurableScreen<TState> nextScreen,
+    ITransitionSourceScreen<TState> prevScreen,
+    ITransitionTargetScreen<TState> nextScreen,
     TimeSpan duration
 ) : StatefulTransitionScreenBase<TState>(screenManager, prevScreen, nextScreen)
-    where TState : struct
 {
     private TimeSpan _elapsedTime = TimeSpan.Zero;
 

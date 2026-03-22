@@ -4,16 +4,14 @@ using Nine.Animations;
 
 namespace Nine.Screens;
 
-public class StatefulTimedFadeInTransitionScreen<TState>(
+public abstract class StatefulTimedFadeInTransitionScreen<TState>(
     GraphicsDevice graphicsDevice,
     ScreenManager screenManager,
-    IConfigurableScreen<TState> prevScreen,
-    IConfigurableScreen<TState> nextScreen,
+    ITransitionSourceScreen<TState> prevScreen,
+    ITransitionTargetScreen<TState> nextScreen,
     TimeSpan duration,
-    ICurve<TState> transitionCurve,
     ICurve<float>? alphaCurve = null
 ) : StatefulTimedTransitionScreenBase<TState>(screenManager, prevScreen, nextScreen, duration)
-    where TState : struct
 {
     private readonly RenderTarget2D _prevRenderTarget = new(
         graphicsDevice,
@@ -38,8 +36,6 @@ public class StatefulTimedFadeInTransitionScreen<TState>(
     );
 
     private readonly SpriteBatch _spriteBatch = new(graphicsDevice, 1);
-
-    protected override TState TransitionState(float progress) => transitionCurve.Evaluate(progress);
 
     public override void Draw(GameTime gameTime)
     {

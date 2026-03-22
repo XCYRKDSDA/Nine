@@ -19,12 +19,15 @@ public interface IScreen
     void Draw(GameTime gameTime);
 }
 
-public interface ITransitionSourceScreen<TState>
+public interface ITransitableScreen<TTransition, TState>
     : IScreen,
-        IConfigurable<TState>,
-        ITransitionSource<TState>;
+        ITransitionHandler<TTransition>,
+        IConfigurable<TState>;
 
-public interface ITransitionTargetScreen<TState>
-    : IScreen,
-        IConfigurable<TState>,
-        ITransitionTarget<TState>;
+public interface ITransitionSourceScreen<TTransition, TState>
+    : ITransitableScreen<TTransition, TState>,
+        ITransitionSourceConstrained<TState>;
+
+public interface ITransitionTargetScreen<TTransition, TState>
+    : ITransitableScreen<TTransition, TState>,
+        ITransitionTargetConstrained<TState>;

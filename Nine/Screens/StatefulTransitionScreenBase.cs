@@ -5,16 +5,18 @@ namespace Nine.Screens;
 /// <summary>
 /// 过渡界面基类
 /// </summary>
-/// <typeparam name="TState">过渡状态类型. 常用于控制前后界面过渡动画</typeparam>
-public abstract class StatefulTransitionScreenBase<TState>(
+/// <typeparam name="TTransition">过渡标签类型</typeparam>
+/// <typeparam name="TSourceState">源界面的过渡视觉状态类型</typeparam>
+/// <typeparam name="TTargetState">目标界面的过渡视觉状态类型</typeparam>
+public abstract class StatefulTransitionScreenBase<TTransition, TSourceState, TTargetState>(
     ScreenManager screenManager,
-    ITransitionSourceScreen<TState> prevScreen,
-    ITransitionTargetScreen<TState> nextScreen
+    ITransitionSourceScreen<TTransition, TSourceState> prevScreen,
+    ITransitionTargetScreen<TTransition, TTargetState> nextScreen
 ) : ScreenBase(screenManager)
 {
-    public ITransitionSourceScreen<TState> PrevScreen => prevScreen;
+    public ITransitableScreen<TTransition, TSourceState> PrevScreen => prevScreen;
 
-    public ITransitionTargetScreen<TState> NextScreen => nextScreen;
+    public ITransitableScreen<TTransition, TTargetState> NextScreen => nextScreen;
 
     private float _progress = 0;
 
@@ -22,9 +24,12 @@ public abstract class StatefulTransitionScreenBase<TState>(
 
     protected abstract float UpdateProgress(GameTime gameTime);
 
-    protected abstract TState InterpolateTransitionState(
-        TState source,
-        TState target,
+    protected abstract (
+        TSourceState SourceState,
+        TTargetState TargetState
+    ) InterpolateTransitionState(
+        TSourceState? sourceConstraint,
+        TTargetState? targetConstraint,
         float progress
     );
 
@@ -48,10 +53,6 @@ public abstract class StatefulTransitionScreenBase<TState>(
         prevScreen.Update(gameTime);
         nextScreen.Update(gameTime);
 
-        // 获取前后界面源状态和目标状态
-        var sourceState = prevScreen.GetSourceTransitionState();
-        var targetState = nextScreen.GetTargetTransitionState();
-
         // 计算过渡进度
         _progress = UpdateProgress(gameTime);
         if (_progress >= 1)
@@ -62,10 +63,16 @@ public abstract class StatefulTransitionScreenBase<TState>(
         }
 
         // 插值得到当前过渡状态
-        var currentState = InterpolateTransitionState(sourceState, targetState, _progress);
+        var sourceConstraint = prevScreen.GetTransitionSourceConstraint();
+        var targetConstraint = nextScreen.GetTransitionTargetConstraint();
+        var (sourceState, targetState) = InterpolateTransitionState(
+            sourceConstraint,
+            targetConstraint,
+            _progress
+        );
 
         // 应用过渡状态, 控制前后界面的过渡效果
-        prevScreen.ApplyState(in currentState);
-        nextScreen.ApplyState(in currentState);
+        prevScreen.ApplyState(in sourceState);
+        nextScreen.ApplyState(in targetState);
     }
 }

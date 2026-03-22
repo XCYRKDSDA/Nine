@@ -4,13 +4,20 @@ using Nine.Screens;
 /// <summary>
 /// 定时的过渡界面基类. 其在指定固定时间后完成过渡
 /// </summary>
-/// <typeparam name="TState"><inheritdoc cref="StatefulTransitionScreenBase{TState}"/></typeparam>
-public abstract class StatefulTimedTransitionScreenBase<TState>(
+/// <typeparam name="TTransition"><inheritdoc cref="StatefulTransitionScreenBase{TTransition}"/></typeparam>
+/// <typeparam name="TSourceState"><inheritdoc cref="StatefulTransitionScreenBase{TSourceState}"/></typeparam>
+/// <typeparam name="TTargetState"><inheritdoc cref="StatefulTransitionScreenBase{TTargetState}"/></typeparam>
+public abstract class StatefulTimedTransitionScreenBase<TTransition, TSourceState, TTargetState>(
     ScreenManager screenManager,
-    ITransitionSourceScreen<TState> prevScreen,
-    ITransitionTargetScreen<TState> nextScreen,
+    ITransitionSourceScreen<TTransition, TSourceState> prevScreen,
+    ITransitionTargetScreen<TTransition, TTargetState> nextScreen,
     TimeSpan duration
-) : StatefulTransitionScreenBase<TState>(screenManager, prevScreen, nextScreen)
+)
+    : StatefulTransitionScreenBase<TTransition, TSourceState, TTargetState>(
+        screenManager,
+        prevScreen,
+        nextScreen
+    )
 {
     private TimeSpan _elapsedTime = TimeSpan.Zero;
 

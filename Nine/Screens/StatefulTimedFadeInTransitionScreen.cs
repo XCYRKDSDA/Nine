@@ -4,14 +4,20 @@ using Nine.Animations;
 
 namespace Nine.Screens;
 
-public abstract class StatefulTimedFadeInTransitionScreen<TState>(
+public abstract class StatefulTimedFadeInTransitionScreen<TTransition, TSourceState, TTargetState>(
     GraphicsDevice graphicsDevice,
     ScreenManager screenManager,
-    ITransitionSourceScreen<TState> prevScreen,
-    ITransitionTargetScreen<TState> nextScreen,
+    ITransitionSourceScreen<TTransition, TSourceState> prevScreen,
+    ITransitionTargetScreen<TTransition, TTargetState> nextScreen,
     TimeSpan duration,
     ICurve<float>? alphaCurve = null
-) : StatefulTimedTransitionScreenBase<TState>(screenManager, prevScreen, nextScreen, duration)
+)
+    : StatefulTimedTransitionScreenBase<TTransition, TSourceState, TTargetState>(
+        screenManager,
+        prevScreen,
+        nextScreen,
+        duration
+    )
 {
     private readonly RenderTarget2D _prevRenderTarget = new(
         graphicsDevice,

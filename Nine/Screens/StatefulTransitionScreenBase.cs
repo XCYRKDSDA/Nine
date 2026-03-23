@@ -5,18 +5,17 @@ namespace Nine.Screens;
 /// <summary>
 /// 过渡界面基类
 /// </summary>
-/// <typeparam name="TTransition">过渡标签类型</typeparam>
 /// <typeparam name="TSourceState">源界面的过渡视觉状态类型</typeparam>
 /// <typeparam name="TTargetState">目标界面的过渡视觉状态类型</typeparam>
-public abstract class StatefulTransitionScreenBase<TTransition, TSourceState, TTargetState>(
+public abstract class StatefulTransitionScreenBase<TSourceState, TTargetState>(
     ScreenManager screenManager,
-    ITransitionSourceScreen<TTransition, TSourceState> prevScreen,
-    ITransitionTargetScreen<TTransition, TTargetState> nextScreen
+    IVisualConfigurableScreen<TSourceState> prevScreen,
+    IVisualConfigurableScreen<TTargetState> nextScreen
 ) : ScreenBase(screenManager)
 {
-    public ITransitableScreen<TTransition, TSourceState> PrevScreen => prevScreen;
+    public IVisualConfigurableScreen<TSourceState> PrevScreen => prevScreen;
 
-    public ITransitableScreen<TTransition, TTargetState> NextScreen => nextScreen;
+    public IVisualConfigurableScreen<TTargetState> NextScreen => nextScreen;
 
     private float _progress = 0;
 
@@ -24,27 +23,24 @@ public abstract class StatefulTransitionScreenBase<TTransition, TSourceState, TT
 
     protected abstract float UpdateProgress(GameTime gameTime);
 
-    protected abstract (
-        TSourceState SourceState,
-        TTargetState TargetState
-    ) InterpolateTransitionState(
-        TSourceState? sourceConstraint,
-        TTargetState? targetConstraint,
+    protected abstract (TSourceState SourceState, TTargetState TargetState) InterpolateVisualState(
+        TSourceState? sourceDefaultState,
+        TTargetState? targetDefaultState,
         float progress
     );
 
     public override void OnActivated()
     {
         base.OnActivated();
-        prevScreen.OnStartTransition();
-        nextScreen.OnStartTransition();
+        prevScreen.EnterConfigurationMode();
+        nextScreen.EnterConfigurationMode();
     }
 
     public override void OnDeactivated()
     {
         base.OnDeactivated();
-        prevScreen.OnFinishTransition();
-        nextScreen.OnFinishTransition();
+        prevScreen.ExitConfigurationMode();
+        nextScreen.ExitConfigurationMode();
     }
 
     public override void Update(GameTime gameTime)
@@ -63,16 +59,16 @@ public abstract class StatefulTransitionScreenBase<TTransition, TSourceState, TT
         }
 
         // 插值得到当前过渡状态
-        var sourceConstraint = prevScreen.GetTransitionSourceConstraint();
-        var targetConstraint = nextScreen.GetTransitionTargetConstraint();
-        var (sourceState, targetState) = InterpolateTransitionState(
-            sourceConstraint,
-            targetConstraint,
+        var sourceDefaultState = prevScreen.GetDefaultVisualState();
+        var targetDefaultState = nextScreen.GetDefaultVisualState();
+        var (sourceState, targetState) = InterpolateVisualState(
+            sourceDefaultState,
+            targetDefaultState,
             _progress
         );
 
         // 应用过渡状态, 控制前后界面的过渡效果
-        prevScreen.ApplyState(in sourceState);
-        nextScreen.ApplyState(in targetState);
+        prevScreen.ApplyVisualState(sourceState);
+        nextScreen.ApplyVisualState(targetState);
     }
 }

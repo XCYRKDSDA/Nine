@@ -17,16 +17,9 @@ public abstract class StatefulTransitionScreenBase<TSourceState, TTargetState>(
 
     public IVisualConfigurableScreen<TTargetState> NextScreen => nextScreen;
 
-    private float _progress = 0;
-
-    public float Progress => _progress;
-
-    protected abstract float UpdateProgress(GameTime gameTime);
-
-    protected abstract (TSourceState SourceState, TTargetState TargetState) InterpolateVisualState(
+    protected abstract (TSourceState SourceState, TTargetState TargetState) UpdateVisualState(
         TSourceState? sourceDefaultState,
-        TTargetState? targetDefaultState,
-        float progress
+        TTargetState? targetDefaultState
     );
 
     public override void OnActivated()
@@ -49,23 +42,10 @@ public abstract class StatefulTransitionScreenBase<TSourceState, TTargetState>(
         prevScreen.Update(gameTime);
         nextScreen.Update(gameTime);
 
-        // 计算过渡进度
-        _progress = UpdateProgress(gameTime);
-        if (_progress >= 1)
-        {
-            // 完成过渡, 切换活跃界面
-            ScreenManager.ActiveScreen = NextScreen;
-            _progress = 1;
-        }
-
         // 插值得到当前过渡状态
         var sourceDefaultState = prevScreen.GetDefaultVisualState();
         var targetDefaultState = nextScreen.GetDefaultVisualState();
-        var (sourceState, targetState) = InterpolateVisualState(
-            sourceDefaultState,
-            targetDefaultState,
-            _progress
-        );
+        var (sourceState, targetState) = UpdateVisualState(sourceDefaultState, targetDefaultState);
 
         // 应用过渡状态, 控制前后界面的过渡效果
         prevScreen.ApplyVisualState(sourceState);

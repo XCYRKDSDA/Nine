@@ -1,6 +1,5 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Nine.Animations;
 
 namespace Nine.Screens;
 
@@ -9,8 +8,7 @@ public abstract class StatefulTimedFadeInTransitionScreen<TSourceState, TTargetS
     ScreenManager screenManager,
     IVisualConfigurableScreen<TSourceState> prevScreen,
     IVisualConfigurableScreen<TTargetState> nextScreen,
-    TimeSpan duration,
-    ICurve<float>? alphaCurve = null
+    TimeSpan duration
 )
     : StatefulTimedTransitionScreenBase<TSourceState, TTargetState>(
         screenManager,
@@ -43,6 +41,8 @@ public abstract class StatefulTimedFadeInTransitionScreen<TSourceState, TTargetS
 
     private readonly SpriteBatch _spriteBatch = new(graphicsDevice, 1);
 
+    protected virtual float UpdateAlpha() => Progress;
+
     public override void Draw(GameTime gameTime)
     {
         // 缓存当前的绘制目标
@@ -59,7 +59,7 @@ public abstract class StatefulTimedFadeInTransitionScreen<TSourceState, TTargetS
         NextScreen.Draw(gameTime);
 
         // 混合两个界面
-        var alpha = alphaCurve is null ? Progress : alphaCurve.Evaluate(Progress);
+        var alpha = UpdateAlpha();
         graphicsDevice.SetRenderTargets(renderTargetsCache);
         _spriteBatch.Begin();
         _spriteBatch.Draw(_prevRenderTarget, Vector2.Zero, Color.White);

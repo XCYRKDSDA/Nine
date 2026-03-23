@@ -19,9 +19,21 @@ public abstract class StatefulTimedTransitionScreenBase<TSourceState, TTargetSta
 
     public TimeSpan ElapsedTime => _elapsedTime;
 
-    protected sealed override float UpdateProgress(GameTime gameTime)
+    private float _progress = 0;
+
+    public float Progress => _progress;
+
+    public override void Update(GameTime gameTime)
     {
         _elapsedTime += gameTime.ElapsedGameTime;
-        return (float)(_elapsedTime / duration);
+        _progress = (float)(_elapsedTime / duration);
+
+        if (_elapsedTime > duration)
+        {
+            ScreenManager.ActiveScreen = NextScreen;
+            _progress = 1;
+        }
+
+        base.Update(gameTime);
     }
 }

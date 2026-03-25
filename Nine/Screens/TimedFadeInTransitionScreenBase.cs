@@ -1,6 +1,6 @@
+using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Nine.Animations;
 
 namespace Nine.Screens;
 
@@ -9,10 +9,20 @@ public class TimedFadeInTransitionScreen(
     ScreenManager screenManager,
     IScreen prevScreen,
     IScreen nextScreen,
-    TimeSpan duration,
-    ICurve<float>? alphaCurve = null
+    TimeSpan duration
 ) : TimedTransitionScreenBase(screenManager, prevScreen, nextScreen, duration)
 {
+    private readonly RenderTarget2D _backgroundRenderTarget = new(
+        graphicsDevice,
+        graphicsDevice.PresentationParameters.BackBufferWidth,
+        graphicsDevice.PresentationParameters.BackBufferHeight,
+        false,
+        SurfaceFormat.Color,
+        DepthFormat.None,
+        0,
+        RenderTargetUsage.PreserveContents
+    );
+
     private readonly RenderTarget2D _prevRenderTarget = new(
         graphicsDevice,
         graphicsDevice.PresentationParameters.BackBufferWidth,
@@ -37,10 +47,19 @@ public class TimedFadeInTransitionScreen(
 
     private readonly SpriteBatch _spriteBatch = new(graphicsDevice, 1);
 
+    protected virtual (float, float) UpdateAlpha() => (1 - Progress, Progress);
+
+    protected virtual void DrawBackground() { }
+
     public override void Draw(GameTime gameTime)
     {
         // 缓存当前的绘制目标
         var renderTargetsCache = graphicsDevice.GetRenderTargets();
+
+        // 绘制过渡的背景
+        graphicsDevice.SetRenderTarget(_backgroundRenderTarget);
+        graphicsDevice.Clear(Color.Black);
+        DrawBackground();
 
         // 绘制前一个界面
         graphicsDevice.SetRenderTarget(_prevRenderTarget);
@@ -49,16 +68,32 @@ public class TimedFadeInTransitionScreen(
 
         // 绘制后一个界面
         graphicsDevice.SetRenderTarget(_nextRenderTarget);
-        graphicsDevice.Clear(Color.Transparent);
+        graphicsDevice.Clear(Color.Black);
         NextScreen.Draw(gameTime);
 
-        // 混合两个界面
-        var progress = (float)(ElapsedTime / Duration);
-        var alpha = alphaCurve is null ? progress : alphaCurve.Evaluate(progress);
+        // 计算混合
+        var (prevAlpha, nextAlpha) = UpdateAlpha();
+        var bgAlpha = 1 - prevAlpha - nextAlpha;
+        Debug.Assert(prevAlpha >= 0 && prevAlpha <= 1);
+        Debug.Assert(nextAlpha >= 0 && nextAlpha <= 1);
+        Debug.Assert(bgAlpha >= 0 && bgAlpha <= 1);
+
+        // 混合三个界面
         graphicsDevice.SetRenderTargets(renderTargetsCache);
-        _spriteBatch.Begin();
-        _spriteBatch.Draw(_prevRenderTarget, Vector2.Zero, Color.White);
-        _spriteBatch.Draw(_nextRenderTarget, Vector2.Zero, Color.White * alpha);
+        graphicsDevice.Clear(Color.Black);
+        _spriteBatch.Begin(
+            SpriteSortMode.Immediate,
+            new BlendState()
+            {
+                ColorSourceBlend = Blend.One,
+                AlphaSourceBlend = Blend.One,
+                ColorDestinationBlend = Blend.One,
+                AlphaDestinationBlend = Blend.One,
+            }
+        );
+        _spriteBatch.Draw(_backgroundRenderTarget, Vector2.Zero, Color.White * bgAlpha);
+        _spriteBatch.Draw(_prevRenderTarget, Vector2.Zero, Color.White * prevAlpha);
+        _spriteBatch.Draw(_nextRenderTarget, Vector2.Zero, Color.White * nextAlpha);
         _spriteBatch.End();
     }
 }

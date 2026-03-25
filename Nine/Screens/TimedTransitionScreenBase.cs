@@ -17,6 +17,10 @@ public abstract class TimedTransitionScreenBase(
 
     public TimeSpan ElapsedTime => _elapsedTime;
 
+    private float _progress = 0;
+
+    public float Progress => _progress;
+
     public override void Update(GameTime gameTime)
     {
         base.Update(gameTime);

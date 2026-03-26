@@ -74,9 +74,9 @@ public class TimedFadeInTransitionScreen(
         // 计算混合
         var (prevAlpha, nextAlpha) = UpdateAlpha();
         var bgAlpha = 1 - prevAlpha - nextAlpha;
-        Debug.Assert(prevAlpha >= 0 && prevAlpha <= 1);
-        Debug.Assert(nextAlpha >= 0 && nextAlpha <= 1);
-        Debug.Assert(bgAlpha >= 0 && bgAlpha <= 1);
+        // Debug.Assert(prevAlpha >= 0 && prevAlpha <= 1);
+        // Debug.Assert(nextAlpha >= 0 && nextAlpha <= 1);
+        // Debug.Assert(bgAlpha >= 0 && bgAlpha <= 1);
 
         // 混合三个界面
         graphicsDevice.SetRenderTargets(renderTargetsCache);

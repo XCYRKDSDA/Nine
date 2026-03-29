@@ -6,17 +6,10 @@ namespace Nine.Screens;
 
 public abstract class StatefulTimedFadeInTransitionScreen<TSourceState, TTargetState>(
     GraphicsDevice graphicsDevice,
-    ScreenManager screenManager,
     IVisualConfigurableScreen<TSourceState> prevScreen,
     IVisualConfigurableScreen<TTargetState> nextScreen,
     TimeSpan duration
-)
-    : StatefulTimedTransitionScreenBase<TSourceState, TTargetState>(
-        screenManager,
-        prevScreen,
-        nextScreen,
-        duration
-    )
+) : StatefulTimedTransitionScreenBase<TSourceState, TTargetState>(prevScreen, nextScreen, duration)
 {
     private readonly RenderTarget2D _backgroundRenderTarget = new(
         graphicsDevice,

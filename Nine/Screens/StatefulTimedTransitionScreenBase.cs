@@ -7,11 +7,10 @@ using Nine.Screens;
 /// <typeparam name="TSourceState"><inheritdoc cref="StatefulTransitionScreenBase{TSourceState}"/></typeparam>
 /// <typeparam name="TTargetState"><inheritdoc cref="StatefulTransitionScreenBase{TTargetState}"/></typeparam>
 public abstract class StatefulTimedTransitionScreenBase<TSourceState, TTargetState>(
-    ScreenManager screenManager,
     IVisualConfigurableScreen<TSourceState> prevScreen,
     IVisualConfigurableScreen<TTargetState> nextScreen,
     TimeSpan duration
-) : StatefulTransitionScreenBase<TSourceState, TTargetState>(screenManager, prevScreen, nextScreen)
+) : StatefulTransitionScreenBase<TSourceState, TTargetState>(prevScreen, nextScreen)
 {
     private TimeSpan _elapsedTime = TimeSpan.Zero;
 
@@ -30,7 +29,7 @@ public abstract class StatefulTimedTransitionScreenBase<TSourceState, TTargetSta
 
         if (_elapsedTime > duration)
         {
-            ScreenManager.ActiveScreen = NextScreen;
+            OnTransitionDone();
             _progress = 1;
         }
 

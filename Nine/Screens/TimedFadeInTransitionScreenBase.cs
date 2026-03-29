@@ -6,11 +6,10 @@ namespace Nine.Screens;
 
 public class TimedFadeInTransitionScreen(
     GraphicsDevice graphicsDevice,
-    ScreenManager screenManager,
     IScreen prevScreen,
     IScreen nextScreen,
     TimeSpan duration
-) : TimedTransitionScreenBase(screenManager, prevScreen, nextScreen, duration)
+) : TimedTransitionScreenBase(prevScreen, nextScreen, duration)
 {
     private readonly RenderTarget2D _backgroundRenderTarget = new(
         graphicsDevice,

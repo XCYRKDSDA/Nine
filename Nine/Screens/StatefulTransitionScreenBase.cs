@@ -8,14 +8,13 @@ namespace Nine.Screens;
 /// <typeparam name="TSourceState">源界面的过渡视觉状态类型</typeparam>
 /// <typeparam name="TTargetState">目标界面的过渡视觉状态类型</typeparam>
 public abstract class StatefulTransitionScreenBase<TSourceState, TTargetState>(
-    ScreenManager screenManager,
     IVisualConfigurableScreen<TSourceState> prevScreen,
     IVisualConfigurableScreen<TTargetState> nextScreen
-) : ScreenBase(screenManager)
+) : TransitionScreenBase(prevScreen, nextScreen)
 {
-    public IVisualConfigurableScreen<TSourceState> PrevScreen => prevScreen;
+    public new IVisualConfigurableScreen<TSourceState> PrevScreen => prevScreen;
 
-    public IVisualConfigurableScreen<TTargetState> NextScreen => nextScreen;
+    public new IVisualConfigurableScreen<TTargetState> NextScreen => nextScreen;
 
     protected abstract (TSourceState SourceState, TTargetState TargetState) UpdateVisualState(
         TSourceState? sourceDefaultState,
@@ -39,8 +38,7 @@ public abstract class StatefulTransitionScreenBase<TSourceState, TTargetState>(
     public override void Update(GameTime gameTime)
     {
         // 前后界面各自照常更新
-        prevScreen.Update(gameTime);
-        nextScreen.Update(gameTime);
+        base.Update(gameTime);
 
         // 插值得到当前过渡状态
         var sourceDefaultState = prevScreen.GetDefaultVisualState();

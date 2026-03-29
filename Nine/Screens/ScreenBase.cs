@@ -4,12 +4,12 @@ namespace Nine.Screens;
 
 public abstract class ScreenBase : IScreen
 {
-    protected ScreenBase(ScreenManager screenManager)
+    protected ScreenBase(NavigationService navigationService)
     {
-        ScreenManager = screenManager;
+        NavigationService = navigationService;
     }
 
-    public ScreenManager ScreenManager { get; private set; }
+    public NavigationService NavigationService { get; private set; }
 
     public virtual void OnActivated() { }
 

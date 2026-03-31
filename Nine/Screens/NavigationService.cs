@@ -40,6 +40,34 @@ public class NavigationService(ScreenManager screenManager, IScreenFactory scree
         }
     }
 
+    public void Navigate2(
+        Type screenType,
+        Task<object?> contextTask,
+        Type transitionScreenType,
+        object? transitionArguments = null
+    )
+    {
+        Debug.Assert(screenType.IsAssignableTo(typeof(IScreen)));
+
+        // 获取当前界面
+        var currentScreen = screenManager.ActiveScreen!;
+        var currentScreenType = currentScreen.GetType();
+
+        // 创建下一个界面的任务
+        var targetScreenTask = screenFactory.CreateScreen2(screenType, contextTask);
+
+        // 创建并切换到过渡界面
+        Debug.Assert(transitionScreenType.IsAssignableTo(typeof(ITransitionScreen)));
+        var transitionScreen = screenFactory.CreateTransitionScreen2(
+            transitionScreenType,
+            currentScreen,
+            targetScreenTask,
+            transitionArguments
+        );
+        transitionScreen.TransitionDone += OnTransitionDone;
+        screenManager.ActiveScreen = transitionScreen;
+    }
+
     private void OnTransitionDone(object? sender, EventArgs e)
     {
         Debug.Assert(sender is ITransitionScreen);

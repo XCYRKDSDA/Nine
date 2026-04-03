@@ -15,6 +15,11 @@ public class NavigationService(ScreenManager screenManager, IScreenFactory scree
 
         // 获取当前界面
         var currentScreen = screenManager.ActiveScreen!;
+
+        // 如果当前界面是过渡界面, 则取其下一个界面为当前界面
+        if (currentScreen is ITransitionScreen currentTransitionScreen)
+            currentScreen = currentTransitionScreen.NextScreen!;
+
         var currentScreenType = currentScreen.GetType();
 
         // 创建下一个界面
@@ -51,6 +56,11 @@ public class NavigationService(ScreenManager screenManager, IScreenFactory scree
 
         // 获取当前界面
         var currentScreen = screenManager.ActiveScreen!;
+
+        // 如果当前界面是过渡界面, 则取其下一个界面为当前界面
+        if (currentScreen is ITransitionScreen currentTransitionScreen)
+            currentScreen = currentTransitionScreen.NextScreen!;
+
         var currentScreenType = currentScreen.GetType();
 
         // 创建下一个界面的任务

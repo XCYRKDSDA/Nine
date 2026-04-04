@@ -57,7 +57,7 @@ public class NavigationService(ScreenManager screenManager, IScreenFactory scree
         Task<object?> contextTask,
         Type transitionScreenType,
         object? transitionArguments = null,
-        bool replace = true
+        bool replace = false
     )
     {
         Debug.Assert(screenType.IsAssignableTo(typeof(IScreen)));

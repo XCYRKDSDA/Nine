@@ -39,7 +39,10 @@ public abstract class StatefulTransitionScreenBase<TSourceState, TTargetState>(
     {
         // 前后界面各自照常更新
         base.Update(gameTime);
+    }
 
+    public override void Draw(GameTime gameTime)
+    {
         // 插值得到当前过渡状态
         var sourceDefaultState = prevScreen.GetDefaultVisualState();
         var targetDefaultState = nextScreen.GetDefaultVisualState();

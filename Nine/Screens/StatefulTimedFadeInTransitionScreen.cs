@@ -52,6 +52,8 @@ public abstract class StatefulTimedFadeInTransitionScreen<TSourceState, TTargetS
 
     public override void Draw(GameTime gameTime)
     {
+        base.Draw(gameTime);
+
         // 缓存当前的绘制目标
         var renderTargetsCache = graphicsDevice.GetRenderTargets();
 

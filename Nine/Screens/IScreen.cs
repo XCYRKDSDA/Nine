@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 
 namespace Nine.Screens;
 
-public interface IScreen
+public interface IScreen : IDisposable
 {
     /// <summary>
     /// 当该画面被设置为活动画面时调用

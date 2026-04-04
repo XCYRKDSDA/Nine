@@ -34,4 +34,6 @@ public abstract class AsyncTransitionScreenBase(
     }
 
     public abstract void Draw(GameTime gameTime);
+
+    public virtual void Dispose() { }
 }

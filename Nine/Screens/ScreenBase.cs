@@ -17,4 +17,6 @@ public abstract class ScreenBase : IScreen
 
     public abstract void Update(GameTime gameTime);
     public abstract void Draw(GameTime gameTime);
+
+    public virtual void Dispose() { }
 }

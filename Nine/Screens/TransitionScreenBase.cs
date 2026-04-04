@@ -31,4 +31,6 @@ public abstract class TransitionScreenBase(IScreen prevScreen, IScreen nextScree
     }
 
     public abstract void Draw(GameTime gameTime);
+
+    public virtual void Dispose() { }
 }

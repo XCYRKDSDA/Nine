@@ -10,26 +10,80 @@ public class ScreenManager : DrawableGameComponent
     public ScreenManager(Game game)
         : base(game) { }
 
-    private IScreen? _activeScreen;
-    private IScreen? _nextActiveScreen;
+    private readonly Stack<IScreen> _screenStack = [];
 
-    public IScreen? ActiveScreen
+    private Action? _screenAction = null;
+
+    private IScreen? _activeScreen = null;
+
+    public IScreen? PreviousScreen => _screenStack.Count > 0 ? _screenStack.Peek() : null;
+
+    public IScreen? ActiveScreen => _activeScreen;
+
+    public void PushScreen(IScreen nextScreen)
     {
-        get => _activeScreen;
-        set => _nextActiveScreen = value;
+        _screenAction = () =>
+        {
+            if (_activeScreen is not null)
+            {
+                _activeScreen.OnDeactivated();
+                _screenStack.Push(_activeScreen);
+            }
+            _activeScreen = nextScreen;
+            _activeScreen.OnActivated();
+        };
+    }
+
+    public void PopScreen()
+    {
+        _screenAction = () =>
+        {
+            if (_activeScreen is null)
+                throw new InvalidOperationException("No screen to pop!");
+            _activeScreen.OnDeactivated();
+            _activeScreen.Dispose();
+
+            _activeScreen = _screenStack.Pop();
+            _activeScreen.OnActivated();
+        };
+    }
+
+    public void ReplaceScreen(IScreen nextScreen)
+    {
+        _screenAction = () =>
+        {
+            if (_activeScreen is not null)
+            {
+                _activeScreen.OnDeactivated();
+                _activeScreen.Dispose();
+            }
+
+            _activeScreen = nextScreen;
+            _activeScreen.OnActivated();
+        };
+    }
+
+    public void ClearStack()
+    {
+        _screenAction = () =>
+        {
+            if (_activeScreen is null)
+                return;
+
+            _activeScreen.OnDeactivated();
+            _activeScreen.Dispose();
+            while (_screenStack.Count > 0)
+                _screenStack.Pop().Dispose();
+        };
     }
 
     public override void Update(GameTime gameTime)
     {
-        // 如果有新的画面, 则进行切换
-        if (_nextActiveScreen != null)
+        if (_screenAction is not null)
         {
-            _activeScreen?.OnDeactivated();
-            _nextActiveScreen.OnActivated();
-            _activeScreen = _nextActiveScreen;
-            _nextActiveScreen = null;
+            _screenAction.Invoke();
+            _screenAction = null;
         }
-
         _activeScreen?.Update(gameTime);
     }
 

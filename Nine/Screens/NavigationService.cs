@@ -4,11 +4,12 @@ namespace Nine.Screens;
 
 public class NavigationService(ScreenManager screenManager, IScreenFactory screenFactory)
 {
-    public void Navigate(
+    public void Forward(
         Type screenType,
         object? context = null,
         Type? transitionScreenType = null,
-        object? transitionArguments = null
+        object? transitionArguments = null,
+        bool replace = false
     )
     {
         Debug.Assert(screenType.GetInterfaces().Contains(typeof(IScreen)));
@@ -16,9 +17,15 @@ public class NavigationService(ScreenManager screenManager, IScreenFactory scree
         // 获取当前界面
         var currentScreen = screenManager.ActiveScreen!;
 
-        // 如果当前界面是过渡界面, 则取其下一个界面为当前界面
+        // 选择默认行为
+        Action<IScreen> action = replace ? screenManager.ReplaceScreen : screenManager.PushScreen;
+
         if (currentScreen is ITransitionScreen currentTransitionScreen)
+        {
+            // 如果当前界面是过渡界面, 则取其下一个界面为当前界面, 且动作强制为 replace
             currentScreen = currentTransitionScreen.NextScreen!;
+            action = screenManager.ReplaceScreen;
+        }
 
         var currentScreenType = currentScreen.GetType();
 
@@ -28,7 +35,7 @@ public class NavigationService(ScreenManager screenManager, IScreenFactory scree
         if (transitionScreenType is null)
         {
             // 若无须过渡, 则直接切换到下一个界面
-            screenManager.ActiveScreen = targetScreen;
+            action.Invoke(targetScreen);
         }
         else
         {
@@ -40,16 +47,17 @@ public class NavigationService(ScreenManager screenManager, IScreenFactory scree
                 targetScreen,
                 transitionArguments
             );
-            transitionScreen.TransitionDone += OnTransitionDone;
-            screenManager.ActiveScreen = transitionScreen;
+            transitionScreen.TransitionDone += OnForwardTransitionDone;
+            action.Invoke(transitionScreen);
         }
     }
 
-    public void Navigate2(
+    public void Forward2(
         Type screenType,
         Task<object?> contextTask,
         Type transitionScreenType,
-        object? transitionArguments = null
+        object? transitionArguments = null,
+        bool replace = true
     )
     {
         Debug.Assert(screenType.IsAssignableTo(typeof(IScreen)));
@@ -57,9 +65,15 @@ public class NavigationService(ScreenManager screenManager, IScreenFactory scree
         // 获取当前界面
         var currentScreen = screenManager.ActiveScreen!;
 
-        // 如果当前界面是过渡界面, 则取其下一个界面为当前界面
+        // 选择默认行为
+        Action<IScreen> action = replace ? screenManager.ReplaceScreen : screenManager.PushScreen;
+
         if (currentScreen is ITransitionScreen currentTransitionScreen)
+        {
+            // 如果当前界面是过渡界面, 则取其下一个界面为当前界面, 且动作改为 replace
             currentScreen = currentTransitionScreen.NextScreen!;
+            action = screenManager.ReplaceScreen;
+        }
 
         var currentScreenType = currentScreen.GetType();
 
@@ -74,16 +88,63 @@ public class NavigationService(ScreenManager screenManager, IScreenFactory scree
             targetScreenTask,
             transitionArguments
         );
-        transitionScreen.TransitionDone += OnTransitionDone;
-        screenManager.ActiveScreen = transitionScreen;
+        transitionScreen.TransitionDone += OnForwardTransitionDone;
+        action.Invoke(transitionScreen);
     }
 
-    private void OnTransitionDone(object? sender, EventArgs e)
+    public void Backward(Type? transitionScreenType = null, object? transitionArguments = null)
+    {
+        // 获取当前界面
+        var currentScreen = screenManager.ActiveScreen!;
+
+        // 如果当前界面是过渡界面, 则取其下一个界面为当前界面
+        if (currentScreen is ITransitionScreen currentTransitionScreen)
+            currentScreen = currentTransitionScreen.NextScreen!;
+
+        var currentScreenType = currentScreen.GetType();
+
+        // 创建上一个界面
+        var targetScreen = screenManager.PreviousScreen;
+
+        if (transitionScreenType is null)
+        {
+            // 若无须过渡, 则直接切换到下一个界面
+            if (targetScreen is not null)
+                screenManager.PopScreen();
+            // 若目标界面为空, 即没有上一个界面了, 则没什么要做的
+        }
+        else
+        {
+            // 若指定了过渡, 则创建并切换到过渡界面
+            Debug.Assert(transitionScreenType.GetInterfaces().Contains(typeof(ITransitionScreen)));
+            Debug.Assert(targetScreen is not null); // 必须存在上一个界面
+            var transitionScreen = screenFactory.CreateTransitionScreen(
+                transitionScreenType,
+                currentScreen,
+                targetScreen,
+                transitionArguments
+            );
+            transitionScreen.TransitionDone += OnBackwardTransitionDone;
+            screenManager.ReplaceScreen(transitionScreen);
+        }
+    }
+
+    private void OnForwardTransitionDone(object? sender, EventArgs e)
     {
         Debug.Assert(sender is ITransitionScreen);
         Debug.Assert(ReferenceEquals(sender, screenManager.ActiveScreen));
         var transitionScreen = (ITransitionScreen)sender;
-        screenManager.ActiveScreen = transitionScreen.NextScreen;
-        transitionScreen.TransitionDone -= OnTransitionDone;
+        transitionScreen.TransitionDone -= OnForwardTransitionDone;
+        screenManager.ReplaceScreen(transitionScreen.NextScreen!); // 过渡界面总是次抛
+    }
+
+    private void OnBackwardTransitionDone(object? sender, EventArgs e)
+    {
+        Debug.Assert(sender is ITransitionScreen);
+        Debug.Assert(ReferenceEquals(sender, screenManager.ActiveScreen));
+        var transitionScreen = (ITransitionScreen)sender;
+        Debug.Assert(ReferenceEquals(transitionScreen.NextScreen, screenManager.PreviousScreen));
+        transitionScreen.TransitionDone -= OnBackwardTransitionDone;
+        screenManager.PopScreen(); // 直接回到上一个
     }
 }

@@ -48,19 +48,21 @@ public class ScreenManager : DrawableGameComponent
         };
     }
 
-    public void ReplaceScreen(IScreen nextScreen)
+    public IScreen? SwapScreen(IScreen nextScreen, bool dispose = true)
     {
         _screenAction = () =>
         {
             if (_activeScreen is not null)
             {
                 _activeScreen.OnDeactivated();
-                _activeScreen.Dispose();
+                if (dispose)
+                    _activeScreen.Dispose();
             }
 
             _activeScreen = nextScreen;
             _activeScreen.OnActivated();
         };
+        return _activeScreen;
     }
 
     public void ClearStack()

@@ -55,11 +55,26 @@ public class AssetsManager(IFileSystem assetsFileSystem, bool inheritDefaultLoad
 
     public void Unload<T>(in UPath path)
     {
+        var asset = (T)_assetsCache[typeof(T)][path.ToAbsolute()];
+        if (asset is IDisposable disposable)
+            disposable.Dispose();
         _assetsCache[typeof(T)].Remove(path.ToAbsolute());
     }
 
-    public void ClearCache()
+    public void Dispose()
     {
+        // 释放所有资产
+        foreach (var (_, assets) in _assetsCache)
+        {
+            foreach (var (_, asset) in assets)
+            {
+                if (asset is IDisposable disposable)
+                    disposable.Dispose();
+            }
+        }
         _assetsCache.Clear();
+
+        // 释放文件系统
+        assetsFileSystem.Dispose();
     }
 }

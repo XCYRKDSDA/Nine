@@ -15,11 +15,11 @@ public abstract class AsyncTransitionScreenBase(
     public IScreen? NextScreen =>
         nextScreenTask.IsCompletedSuccessfully ? nextScreenTask.Result : null;
 
-    public event EventHandler? TransitionDone;
+    public bool TransitionDone { get; private set; }
 
     protected void OnTransitionDone()
     {
-        TransitionDone?.Invoke(this, EventArgs.Empty);
+        TransitionDone = true;
     }
 
     public virtual void OnActivated() { }

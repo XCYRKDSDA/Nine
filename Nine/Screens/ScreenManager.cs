@@ -7,7 +7,6 @@ internal enum NavigationDirection
 {
     Push,
     Pop,
-    Swap,
 }
 
 internal enum TransitionDirection
@@ -66,8 +65,7 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
         Type targetScreenType,
         object? context = null,
         Type? transitionScreenType = null,
-        object? transitionArguments = null,
-        bool swap = false
+        object? transitionArguments = null
     )
     {
         Debug.Assert(targetScreenType.IsAssignableTo(typeof(IScreen)));
@@ -85,7 +83,7 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
         {
             // 若无须过渡, 则直接切换到下一个界面
             _navigationRequest = new NavigationWithoutTransition(
-                swap ? NavigationDirection.Swap : NavigationDirection.Push,
+                NavigationDirection.Push,
                 currentScreen,
                 targetScreen
             );
@@ -103,7 +101,7 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
                 transitionArguments
             );
             _navigationRequest = new NavigationWithTransition(
-                swap ? NavigationDirection.Swap : NavigationDirection.Push,
+                NavigationDirection.Push,
                 currentScreen,
                 transitionScreen,
                 targetScreen,
@@ -116,8 +114,7 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
         Type targetScreenType,
         Task<object?> contextTask,
         Type transitionScreenType,
-        object? transitionArguments = null,
-        bool swap = false
+        object? transitionArguments = null
     )
     {
         Debug.Assert(targetScreenType.IsAssignableTo(typeof(IScreen)));
@@ -142,7 +139,7 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
             transitionArguments
         );
         _navigationRequest = new NavigationWithAsynchronousTransition(
-            swap ? NavigationDirection.Swap : NavigationDirection.Push,
+            NavigationDirection.Push,
             currentScreen,
             transitionScreen,
             targetScreenTask,
@@ -289,12 +286,6 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
         {
             if (dir is NavigationDirection.Push)
                 _screenStack.Push(new(prevScreen, transitionScreen));
-            else if (dir is NavigationDirection.Swap)
-            {
-                prevScreen.Dispose();
-                transitionScreen?.Dispose();
-                // TODO: swap 时处理缓存的导航
-            }
             else if (dir is NavigationDirection.Pop)
             {
                 prevScreen.Dispose();

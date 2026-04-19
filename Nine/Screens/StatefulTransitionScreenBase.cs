@@ -35,12 +35,6 @@ public abstract class StatefulTransitionScreenBase<TSourceState, TTargetState>(
         nextScreen.ExitConfigurationMode();
     }
 
-    public override void Update(GameTime gameTime)
-    {
-        // 前后界面各自照常更新
-        base.Update(gameTime);
-    }
-
     public override void Draw(GameTime gameTime)
     {
         // 插值得到当前过渡状态

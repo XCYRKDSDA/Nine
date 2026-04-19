@@ -10,48 +10,57 @@ internal enum NavigationDirection
     Swap,
 }
 
-internal interface INavigation;
+internal enum TransitionDirection
+{
+    Forward,
+    Backward,
+}
+
+internal interface INavigation
+{
+    NavigationDirection NavigationDirection { get; }
+}
+
+internal interface INavigationWithTransition : INavigation
+{
+    TransitionDirection TransitionDirection { get; }
+
+    ITransitionScreen TransitionScreen { get; }
+}
 
 internal record NavigationWithoutTransition(
-    NavigationDirection Direction,
+    NavigationDirection NavigationDirection,
     IScreen? PrevScreen,
     IScreen NextScreen
 ) : INavigation;
 
 internal record NavigationWithTransition(
-    NavigationDirection Direction,
+    NavigationDirection NavigationDirection,
     IScreen PrevScreen,
     ITransitionScreen TransitionScreen,
-    IScreen NextScreen
-) : INavigation;
+    IScreen NextScreen,
+    TransitionDirection TransitionDirection
+) : INavigationWithTransition;
 
 internal record NavigationWithAsynchronousTransition(
-    NavigationDirection Direction,
+    NavigationDirection NavigationDirection,
     IScreen PrevScreen,
     ITransitionScreen TransitionScreen,
-    ITaskLike<IScreen> NextScreenTask
-) : INavigation;
+    ITaskLike<IScreen> NextScreenTask,
+    TransitionDirection TransitionDirection
+) : INavigationWithTransition;
+
+internal record StackedScreen(IScreen Screen, ITransitionScreen? Departure);
 
 public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
     : DrawableGameComponent(game)
 {
     // 界面栈. 存储不活跃的那些界面
-    private readonly Stack<IScreen> _screenStack = [];
+    private readonly Stack<StackedScreen> _screenStack = [];
 
     private INavigation? _navigationRequest = null;
 
     private object? _activeStatus = null;
-
-    public IScreen? ActiveScreen =>
-        _activeStatus switch
-        {
-            null => null,
-            IScreen screen => screen,
-            NavigationWithoutTransition nav1 => nav1.PrevScreen,
-            NavigationWithTransition nav2 => nav2.TransitionScreen,
-            NavigationWithAsynchronousTransition nav3 => nav3.TransitionScreen,
-            _ => throw new NotImplementedException(),
-        };
 
     public void Forward(
         Type targetScreenType,
@@ -97,7 +106,8 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
                 swap ? NavigationDirection.Swap : NavigationDirection.Push,
                 currentScreen,
                 transitionScreen,
-                targetScreen
+                targetScreen,
+                TransitionDirection.Forward
             );
         }
     }
@@ -135,7 +145,8 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
             swap ? NavigationDirection.Swap : NavigationDirection.Push,
             currentScreen,
             transitionScreen,
-            targetScreenTask
+            targetScreenTask,
+            TransitionDirection.Forward
         );
     }
 
@@ -150,9 +161,9 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
         // 获取上一个界面
         if (_screenStack.Count == 0)
             throw new InvalidOperationException("当前界面栈中没有暂存的界面, 无法返回!");
-        var targetScreen = _screenStack.Peek();
+        var (targetScreen, originalTransition) = _screenStack.Peek();
 
-        if (transitionScreenType is null)
+        if (transitionScreenType is null && originalTransition is null)
         {
             // 若无须过渡, 则直接切换到下一个界面
             _navigationRequest = new NavigationWithoutTransition(
@@ -163,19 +174,32 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
         }
         else
         {
-            // 若指定了过渡, 则创建并切换到过渡界面
-            Debug.Assert(transitionScreenType.IsAssignableTo(typeof(ITransitionScreen)));
-            var transitionScreen = screenFactory.CreateTransitionScreen(
-                transitionScreenType,
-                currentScreen,
-                targetScreen,
-                transitionArguments
-            );
+            ITransitionScreen transitionScreen;
+            TransitionDirection transitionDirection;
+            if (transitionScreenType is not null)
+            {
+                // 若显示指定了过渡, 则创建并切换到过渡界面
+                Debug.Assert(transitionScreenType.IsAssignableTo(typeof(ITransitionScreen)));
+                transitionScreen = screenFactory.CreateTransitionScreen(
+                    transitionScreenType,
+                    currentScreen,
+                    targetScreen,
+                    transitionArguments
+                );
+                transitionDirection = TransitionDirection.Forward;
+            }
+            else
+            {
+                // 否则直接复用原本的过渡
+                transitionScreen = originalTransition!;
+                transitionDirection = TransitionDirection.Backward;
+            }
             _navigationRequest = new NavigationWithTransition(
                 NavigationDirection.Pop,
                 currentScreen,
                 transitionScreen,
-                targetScreen
+                targetScreen,
+                transitionDirection
             );
         }
     }
@@ -190,9 +214,9 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
         if (_navigationRequest is NavigationWithoutTransition navigation1)
             (_, prevScreen, _) = navigation1;
         else if (_navigationRequest is NavigationWithTransition navigation2)
-            (_, prevScreen, transitionScreen, _) = navigation2;
+            (_, prevScreen, transitionScreen, _, _) = navigation2;
         else if (_navigationRequest is NavigationWithAsynchronousTransition navigation3)
-            (_, prevScreen, transitionScreen, _) = navigation3;
+            (_, prevScreen, transitionScreen, _, _) = navigation3;
         else
             throw new NotImplementedException();
 
@@ -203,14 +227,26 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
         _navigationRequest = null;
     }
 
+    private static TransitionState GetTargetTransitionState(TransitionDirection transitionDirection)
+    {
+        return transitionDirection switch
+        {
+            TransitionDirection.Forward => TransitionState.Completed,
+            TransitionDirection.Backward => TransitionState.Pending,
+            _ => throw new NotImplementedException(),
+        };
+    }
+
     private bool CheckNavigationDone()
     {
         return _activeStatus switch
         {
             null or IScreen => false,
             NavigationWithoutTransition nav1 => true,
-            NavigationWithTransition nav2 => nav2.TransitionScreen.TransitionDone,
-            NavigationWithAsynchronousTransition nav3 => nav3.TransitionScreen.TransitionDone
+            NavigationWithTransition nav2 => nav2.TransitionScreen.TransitionState
+                == GetTargetTransitionState(nav2.TransitionDirection),
+            NavigationWithAsynchronousTransition nav3 => nav3.TransitionScreen.TransitionState
+                == GetTargetTransitionState(nav3.TransitionDirection)
                 && nav3.NextScreenTask.IsCompleted,
             _ => throw new NotImplementedException(),
         };
@@ -224,39 +260,48 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
         IScreen? prevScreen;
         ITransitionScreen? transitionScreen = null;
         IScreen nextScreen;
+        TransitionDirection transDir;
 
         if (_activeStatus is NavigationWithoutTransition navigation1)
         {
             // 当导航无须过渡时, 总是执行导航
             (dir, prevScreen, nextScreen) = navigation1;
+            transDir = TransitionDirection.Forward;
         }
         else if (_activeStatus is NavigationWithTransition navigation2)
         {
-            (dir, prevScreen, transitionScreen, nextScreen) = navigation2;
-            Debug.Assert(transitionScreen.TransitionDone);
+            (dir, prevScreen, transitionScreen, nextScreen, transDir) = navigation2;
+            Debug.Assert(transitionScreen.TransitionState == GetTargetTransitionState(transDir));
         }
         else if (_activeStatus is NavigationWithAsynchronousTransition navigation3)
         {
             ITaskLike<IScreen> nextScreenTask;
-            (dir, prevScreen, transitionScreen, nextScreenTask) = navigation3;
-            Debug.Assert(transitionScreen.TransitionDone && nextScreenTask.IsCompleted);
+            (dir, prevScreen, transitionScreen, nextScreenTask, transDir) = navigation3;
+            Debug.Assert(transitionScreen.TransitionState == GetTargetTransitionState(transDir));
+            Debug.Assert(nextScreenTask.IsCompleted);
             nextScreen = nextScreenTask.Result;
         }
         else
             throw new NotImplementedException();
 
         transitionScreen?.OnDeactivated();
-        transitionScreen?.Dispose();
         if (prevScreen is not null)
         {
             if (dir is NavigationDirection.Push)
-                _screenStack.Push(prevScreen);
+                _screenStack.Push(new(prevScreen, transitionScreen));
             else if (dir is NavigationDirection.Swap)
+            {
                 prevScreen.Dispose();
+                transitionScreen?.Dispose();
+                // TODO: swap 时处理缓存的导航
+            }
             else if (dir is NavigationDirection.Pop)
             {
                 prevScreen.Dispose();
-                _screenStack.Pop();
+                transitionScreen?.Dispose();
+                var (_, originalTransition) = _screenStack.Pop();
+                if (!ReferenceEquals(originalTransition, transitionScreen))
+                    originalTransition?.Dispose();
             }
             else
                 throw new NotImplementedException();
@@ -274,13 +319,30 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
         if (CheckNavigationDone())
             FinalizeNavigation();
 
-        ActiveScreen?.Update(gameTime);
+        if (_activeStatus is IScreen activeScreen)
+            activeScreen.Update(gameTime);
+        else if (_activeStatus is INavigationWithTransition navigation)
+        {
+            if (navigation.TransitionDirection is TransitionDirection.Forward)
+                navigation.TransitionScreen.Update(gameTime);
+            else if (navigation.TransitionDirection is TransitionDirection.Backward)
+                navigation.TransitionScreen.UpdateBackward(gameTime);
+            else
+                throw new NotImplementedException();
+        }
+        else
+            throw new NotImplementedException();
     }
 
     public override void Draw(GameTime gameTime)
     {
         base.Draw(gameTime);
-        ActiveScreen?.Draw(gameTime);
+        if (_activeStatus is IScreen activeScreen)
+            activeScreen.Draw(gameTime);
+        else if (_activeStatus is INavigationWithTransition navigation)
+            navigation.TransitionScreen.Draw(gameTime);
+        else
+            throw new NotImplementedException();
     }
 
     protected override void Dispose(bool disposing)

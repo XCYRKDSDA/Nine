@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -46,7 +45,7 @@ public abstract class StatefulTimedFadeInTransitionScreen<TSourceState, TTargetS
 
     private readonly SpriteBatch _spriteBatch = new(graphicsDevice, 1);
 
-    protected virtual (float, float) UpdateAlpha() => (1 - Progress, Progress);
+    protected virtual (float, float) CalculateAlpha() => (1 - Progress, Progress);
 
     protected virtual void DrawBackground() { }
 
@@ -73,7 +72,7 @@ public abstract class StatefulTimedFadeInTransitionScreen<TSourceState, TTargetS
         NextScreen.Draw(gameTime);
 
         // 计算混合
-        var (prevAlpha, nextAlpha) = UpdateAlpha();
+        var (prevAlpha, nextAlpha) = CalculateAlpha();
         var bgAlpha = 1 - prevAlpha - nextAlpha;
         // Debug.Assert(prevAlpha >= 0 && prevAlpha <= 1);
         // Debug.Assert(nextAlpha >= 0 && nextAlpha <= 1);

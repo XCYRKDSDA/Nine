@@ -22,10 +22,31 @@ public abstract class TimedTransitionScreenBase(
 
     public override void Update(GameTime gameTime)
     {
-        base.Update(gameTime);
-
         _elapsedTime += gameTime.ElapsedGameTime;
+        _progress = (float)(_elapsedTime / duration);
+        TransitionState = TransitionState.InProgress;
+
         if (_elapsedTime > duration)
-            OnTransitionDone();
+        {
+            _progress = 1;
+            TransitionState = TransitionState.Completed;
+        }
+
+        base.Update(gameTime);
+    }
+
+    public override void UpdateBackward(GameTime gameTime)
+    {
+        _elapsedTime -= gameTime.ElapsedGameTime;
+        _progress = (float)(_elapsedTime / duration);
+        TransitionState = TransitionState.InProgress;
+
+        if (_elapsedTime <= TimeSpan.Zero)
+        {
+            _progress = 0;
+            TransitionState = TransitionState.Pending;
+        }
+
+        base.UpdateBackward(gameTime);
     }
 }

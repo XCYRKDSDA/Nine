@@ -15,18 +15,20 @@ public abstract class AsyncTransitionScreenBase(
     public IScreen? NextScreen =>
         nextScreenTask.IsCompletedSuccessfully ? nextScreenTask.Result : null;
 
-    public bool TransitionDone { get; private set; }
-
-    protected void OnTransitionDone()
-    {
-        TransitionDone = true;
-    }
+    public TransitionState TransitionState { get; protected set; } = TransitionState.Pending;
 
     public virtual void OnActivated() { }
 
     public virtual void OnDeactivated() { }
 
     public virtual void Update(GameTime gameTime)
+    {
+        // 前后界面各自照常更新
+        prevScreen.Update(gameTime);
+        NextScreen?.Update(gameTime);
+    }
+
+    public virtual void UpdateBackward(GameTime gameTime)
     {
         // 前后界面各自照常更新
         prevScreen.Update(gameTime);

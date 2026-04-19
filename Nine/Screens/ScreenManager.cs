@@ -61,6 +61,8 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
 
     private object? _activeStatus = null;
 
+    public bool Transitioning => _activeStatus is INavigation;
+
     public void Forward(
         Type targetScreenType,
         object? context = null,

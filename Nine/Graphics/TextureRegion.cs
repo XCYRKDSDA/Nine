@@ -21,21 +21,21 @@ public class TextureRegion
     public Vector2 LogicalOrigin { get; }
 
     /// <summary>
-    /// 逻辑尺寸
+    /// Bounds 局部坐标系下的虚拟方框，描述纹理内实际有效的部分
     /// </summary>
-    public Vector2 LogicalSize { get; }
+    public RectangleF VirtualFrame { get; }
 
     public TextureRegion(
         Texture2D texture,
         Rectangle? region = null,
         Vector2? logicalOrigin = null,
-        Vector2? logicalSize = null
+        RectangleF? virtualFrame = null
     )
     {
         Texture = texture;
         Bounds = region ?? texture.Bounds;
 
         LogicalOrigin = logicalOrigin ?? Vector2.Zero;
-        LogicalSize = logicalSize ?? Bounds.Size.ToVector2();
+        VirtualFrame = virtualFrame ?? new RectangleF(0, 0, Bounds.Width, Bounds.Height);
     }
 }

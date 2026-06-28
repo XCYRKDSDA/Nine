@@ -28,7 +28,7 @@ public class TextureAtlasLoader : IAssetLoader<TextureAtlas>
 
         public Vector2? Anchor { get; set; }
 
-        public Vector2? Size { get; set; }
+        public RectangleF? Frame { get; set; }
 
         public NinePatchPadding? Padding { get; set; }
     }
@@ -39,6 +39,7 @@ public class TextureAtlasLoader : IAssetLoader<TextureAtlas>
 
         var serializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
         serializerOptions.Converters.Add(new Vector2JsonConverter());
+        serializerOptions.Converters.Add(new RectangleFJsonConverter());
         serializerOptions.Converters.Add(new NinePatchPaddingJsonConverter());
         var jsonTextureAtlas =
             JsonSerializer.Deserialize<JsonTextureAtlas>(fileStream, serializerOptions)
@@ -63,10 +64,10 @@ public class TextureAtlasLoader : IAssetLoader<TextureAtlas>
                     sourceRegion,
                     padding,
                     jsonSubTexture.Anchor,
-                    jsonSubTexture.Size
+                    jsonSubTexture.Frame
                 );
             else
-                textureAtlas.Add(key, sourceRegion, jsonSubTexture.Anchor, jsonSubTexture.Size);
+                textureAtlas.Add(key, sourceRegion, jsonSubTexture.Anchor, jsonSubTexture.Frame);
         }
 
         return textureAtlas;

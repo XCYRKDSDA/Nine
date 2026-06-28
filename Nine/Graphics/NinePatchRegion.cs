@@ -35,8 +35,8 @@ public class NinePatchRegion(
     NinePatchPadding padding,
     Rectangle? region = null,
     Vector2? logicalOrigin = null,
-    Vector2? size = null
-) : TextureRegion(texture, region, logicalOrigin, size)
+    RectangleF? frame = null
+) : TextureRegion(texture, region, logicalOrigin, frame)
 {
     public NinePatchPadding Padding { get; } = padding;
 }

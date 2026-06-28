@@ -39,9 +39,9 @@ public class TextureAtlas : IReadOnlyDictionary<string, TextureRegion>
         _texture = texture;
     }
 
-    public void Add(string key, Rectangle region, Vector2? anchor = null, Vector2? size = null)
+    public void Add(string key, Rectangle region, Vector2? anchor = null, RectangleF? frame = null)
     {
-        _regions[key] = new(_texture, region, anchor, size);
+        _regions[key] = new(_texture, region, anchor, frame);
     }
 
     public void Add(
@@ -49,9 +49,9 @@ public class TextureAtlas : IReadOnlyDictionary<string, TextureRegion>
         Rectangle region,
         NinePatchPadding padding,
         Vector2? anchor = null,
-        Vector2? size = null
+        RectangleF? frame = null
     )
     {
-        _regions[key] = new NinePatchRegion(_texture, padding, region, anchor, size);
+        _regions[key] = new NinePatchRegion(_texture, padding, region, anchor, frame);
     }
 }

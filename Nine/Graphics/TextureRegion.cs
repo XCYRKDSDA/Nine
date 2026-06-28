@@ -16,9 +16,9 @@ public class TextureRegion
     public Rectangle Bounds { get; }
 
     /// <summary>
-    /// 在像素区域坐标系下的逻辑原点
+    /// Bounds 局部坐标系下的变换锚点
     /// </summary>
-    public Vector2 LogicalOrigin { get; }
+    public Vector2 Anchor { get; }
 
     /// <summary>
     /// Bounds 局部坐标系下的虚拟方框，描述纹理内实际有效的部分
@@ -28,14 +28,14 @@ public class TextureRegion
     public TextureRegion(
         Texture2D texture,
         Rectangle? region = null,
-        Vector2? logicalOrigin = null,
+        Vector2? anchor = null,
         RectangleF? virtualFrame = null
     )
     {
         Texture = texture;
         Bounds = region ?? texture.Bounds;
 
-        LogicalOrigin = logicalOrigin ?? Vector2.Zero;
+        Anchor = anchor ?? Vector2.Zero;
         VirtualFrame = virtualFrame ?? new RectangleF(0, 0, Bounds.Width, Bounds.Height);
     }
 }

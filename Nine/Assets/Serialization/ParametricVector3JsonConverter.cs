@@ -24,12 +24,15 @@ public sealed class ParametricVector3JsonConverter : JsonConverter<IParametric<V
         var x =
             _floatJsonConverter.Read(ref reader, typeToConvert, options)
             ?? throw new JsonException();
+        reader.Read();
         var y =
             _floatJsonConverter.Read(ref reader, typeToConvert, options)
             ?? throw new JsonException();
+        reader.Read();
         var z =
             _floatJsonConverter.Read(ref reader, typeToConvert, options)
             ?? throw new JsonException();
+        reader.Read();
 
         // 丢弃多余的数组成员
         while (reader.TokenType != JsonTokenType.EndArray)

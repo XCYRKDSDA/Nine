@@ -30,7 +30,8 @@ internal interface INavigationWithTransition : INavigation
 internal record NavigationWithoutTransition(
     NavigationDirection NavigationDirection,
     IScreen? PrevScreen,
-    IScreen NextScreen
+    IScreen NextScreen,
+    IReadOnlyDictionary<string, object>? Query
 ) : INavigation;
 
 internal record NavigationWithTransition(
@@ -38,7 +39,8 @@ internal record NavigationWithTransition(
     IScreen PrevScreen,
     ITransitionScreen TransitionScreen,
     IScreen NextScreen,
-    TransitionDirection TransitionDirection
+    TransitionDirection TransitionDirection,
+    IReadOnlyDictionary<string, object>? Query
 ) : INavigationWithTransition;
 
 internal record NavigationWithAsynchronousTransition(
@@ -46,7 +48,8 @@ internal record NavigationWithAsynchronousTransition(
     IScreen PrevScreen,
     ITransitionScreen TransitionScreen,
     ITaskLike<IScreen> NextScreenTask,
-    TransitionDirection TransitionDirection
+    TransitionDirection TransitionDirection,
+    IReadOnlyDictionary<string, object>? Query
 ) : INavigationWithTransition;
 
 internal record StackedScreen(IScreen Screen, ITransitionScreen? Departure);
@@ -67,7 +70,8 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
         Type targetScreenType,
         object? context = null,
         Type? transitionScreenType = null,
-        object? transitionArguments = null
+        object? transitionArguments = null,
+        IReadOnlyDictionary<string, object>? query = null
     )
     {
         Debug.Assert(targetScreenType.IsAssignableTo(typeof(IScreen)));
@@ -87,7 +91,8 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
             _navigationRequest = new NavigationWithoutTransition(
                 NavigationDirection.Push,
                 currentScreen,
-                targetScreen
+                targetScreen,
+                query
             );
         }
         else
@@ -107,7 +112,8 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
                 currentScreen,
                 transitionScreen,
                 targetScreen,
-                TransitionDirection.Forward
+                TransitionDirection.Forward,
+                query
             );
         }
     }
@@ -116,7 +122,8 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
         Type targetScreenType,
         Task<object?> contextTask,
         Type transitionScreenType,
-        object? transitionArguments = null
+        object? transitionArguments = null,
+        IReadOnlyDictionary<string, object>? query = null
     )
     {
         Debug.Assert(targetScreenType.IsAssignableTo(typeof(IScreen)));
@@ -145,11 +152,16 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
             currentScreen,
             transitionScreen,
             targetScreenTask,
-            TransitionDirection.Forward
+            TransitionDirection.Forward,
+            query
         );
     }
 
-    public void Backward(Type? transitionScreenType = null, object? transitionArguments = null)
+    public void Backward(
+        Type? transitionScreenType = null,
+        object? transitionArguments = null,
+        IReadOnlyDictionary<string, object>? query = null
+    )
     {
         // 获取当前界面
         var currentScreen = (IScreen)_activeStatus!;
@@ -168,7 +180,8 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
             _navigationRequest = new NavigationWithoutTransition(
                 NavigationDirection.Pop,
                 currentScreen,
-                targetScreen
+                targetScreen,
+                query
             );
         }
         else
@@ -198,7 +211,8 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
                 currentScreen,
                 transitionScreen,
                 targetScreen,
-                transitionDirection
+                transitionDirection,
+                query
             );
         }
     }
@@ -208,19 +222,25 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
         Debug.Assert(_navigationRequest is not null);
 
         IScreen? prevScreen;
+        IScreen? nextScreen = null;
         ITransitionScreen? transitionScreen = null;
+        IReadOnlyDictionary<string, object>? query = null;
 
         if (_navigationRequest is NavigationWithoutTransition navigation1)
-            (_, prevScreen, _) = navigation1;
+            (_, prevScreen, nextScreen, query) = navigation1;
         else if (_navigationRequest is NavigationWithTransition navigation2)
-            (_, prevScreen, transitionScreen, _, _) = navigation2;
+            (_, prevScreen, transitionScreen, nextScreen, _, query) = navigation2;
         else if (_navigationRequest is NavigationWithAsynchronousTransition navigation3)
-            (_, prevScreen, transitionScreen, _, _) = navigation3;
+            (_, prevScreen, transitionScreen, _, _, query) = navigation3;
         else
             throw new NotImplementedException();
 
         prevScreen?.OnDeactivated();
         transitionScreen?.OnActivated();
+
+        // 过渡开始时直接交付给目标界面; 异步目标尚未创建, 加载完成后交付
+        if (query is not null && nextScreen is IQueryAttributable attributable)
+            attributable.ApplyQueryAttributes(query);
 
         _activeStatus = _navigationRequest;
         _navigationRequest = null;
@@ -264,18 +284,18 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
         if (_activeStatus is NavigationWithoutTransition navigation1)
         {
             // 当导航无须过渡时, 总是执行导航
-            (dir, prevScreen, nextScreen) = navigation1;
+            (dir, prevScreen, nextScreen, _) = navigation1;
             transDir = TransitionDirection.Forward;
         }
         else if (_activeStatus is NavigationWithTransition navigation2)
         {
-            (dir, prevScreen, transitionScreen, nextScreen, transDir) = navigation2;
+            (dir, prevScreen, transitionScreen, nextScreen, transDir, _) = navigation2;
             Debug.Assert(transitionScreen.TransitionState == GetTargetTransitionState(transDir));
         }
         else if (_activeStatus is NavigationWithAsynchronousTransition navigation3)
         {
             ITaskLike<IScreen> nextScreenTask;
-            (dir, prevScreen, transitionScreen, nextScreenTask, transDir) = navigation3;
+            (dir, prevScreen, transitionScreen, nextScreenTask, transDir, _) = navigation3;
             Debug.Assert(transitionScreen.TransitionState == GetTargetTransitionState(transDir));
             Debug.Assert(nextScreenTask.IsCompleted);
             nextScreen = nextScreenTask.Result;
@@ -309,6 +329,19 @@ public sealed class ScreenManager(IScreenFactory screenFactory, Game game)
 
         if (_navigationRequest is not null)
             StartNavigation();
+
+        // 异步目标界面加载完成后交付导航参数
+        if (
+            _activeStatus
+                is NavigationWithAsynchronousTransition { Query: not null } asyncNavigation
+            && asyncNavigation.NextScreenTask.IsCompletedSuccessfully
+        )
+        {
+            if (asyncNavigation.NextScreenTask.Result is IQueryAttributable attributable)
+                attributable.ApplyQueryAttributes(asyncNavigation.Query);
+            _activeStatus = asyncNavigation with { Query = null };
+        }
+
         if (CheckNavigationDone())
             FinalizeNavigation();
 
